@@ -1,16 +1,17 @@
 package socketInterface;
 
-import templates.Action;
-import templates.GameInterface;
-import templates.State;
+import templates.*;
 
 public class SocketGameInterface implements GameInterface {
-  public SocketGameInterface(int port){
+  public SocketGameInterface(int port, Game game, StateMaster stateMaster, ActionMaster actionMaster){
     signUpPort_ = port;
+    game_ = game;
+    stateMaster_ = stateMaster;
+    actionMaster_ = actionMaster;
   }
 
   @Override
-  public String requestAgents() {
+  public String requestAgent() {
     return null;
   }
 
@@ -20,4 +21,8 @@ public class SocketGameInterface implements GameInterface {
   }
 
   private int signUpPort_;
+  private Game game_;
+  private StateMaster stateMaster_;
+  private ActionMaster actionMaster_;
+
 }

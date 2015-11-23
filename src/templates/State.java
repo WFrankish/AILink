@@ -1,20 +1,13 @@
 package templates;
 
 /**
- * State information for an AI problem. This is not necessarily all of the information held about the state, only that
- * which is communicated to the agent.
+ * Visisble State for a Game. This is not necessarily all of the information held about the state by the game,
+ * only that which is to be communicated to the agent.
  */
 public interface State {
   /**
-   * Given the state information as a string, convert it to the state class.
-   * @param input templates.State information as String
-   * @return templates.State information as State
-   */
-  State parseString(String input);
-
-  /**
-   * Convert the current state information to string format.
-   * @return state information as String.
+   * Convert the State into String format. All information about this State should be recoverable from the String.
+   * @return State as String
    */
   String toString();
 }

@@ -1,8 +1,9 @@
 package templates;
 
-import templates.Action;
-
+/**
+ * The interface for a Game connecting it to all of the external Agents participating.
+ */
 public interface GameInterface {
-  String requestAgents();
+  String requestAgent();
   Action requestAction(String agentID, State state, Action[] actions);
 }
