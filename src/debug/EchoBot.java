@@ -20,19 +20,23 @@ public class EchoBot implements Agent {
    * Runs the EchoBot, connecting to the given url at the given port.
    * @param args url port
    */
-  public void main(String[] args){
-    try {
-      String url = args[0];
-      int port = Integer.parseInt(args[1]);
-      AgentInterface connection = new SocketAgentInterface(url,
-                                                           port,
-                                                           new Echo.EchoStateMaster(),
-                                                           new Echo.EchoActionMaster());
-      connection.registerAgent(this);
-      connection.run();
-    }
-    catch (Error e){
-      error(e.toString());
+  public static void main(String[] args) {
+    EchoBot instance = new EchoBot();
+    if (args.length < 2) {
+      instance.error("Bad arguments");
+    } else {
+      try {
+        String url = args[0];
+        int port = Integer.parseInt(args[1]);
+        AgentInterface connection = new SocketAgentInterface(url,
+            port,
+            instance,
+            new Echo.EchoStateMaster(),
+            new Echo.EchoActionMaster());
+        connection.run();
+      } catch (Error e) {
+        instance.error(e.toString());
+      }
     }
   }
 
@@ -73,6 +77,11 @@ public class EchoBot implements Agent {
   @Override
   public String identity() {
     return "EchoBot";
+  }
+
+  @Override
+  public void end() {
+
   }
 
   @Override

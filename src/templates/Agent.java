@@ -28,7 +28,7 @@ public interface Agent {
   void initialState(State debrief);
 
   /**
-   * Give the String that identifies you. Mostly for human use, so uniqueness is helpful but not mandatory.
+   * Give the String that identifies your Agent. Mostly for human use, so uniqueness is helpful but not mandatory.
    * Should return the same value every time.
    * @return your identity as String
    */
@@ -47,4 +47,10 @@ public interface Agent {
    * @param str error information as String
    */
   void error(String str);
+
+  /**
+   * Called when the AgentInterface has died and/or the Game is over.
+   * Does not have to end your Agent.
+   */
+  void end();
 }

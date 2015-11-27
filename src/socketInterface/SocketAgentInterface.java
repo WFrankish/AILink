@@ -3,6 +3,8 @@ package socketInterface;
 import templates.*;
 
 import java.io.*;
+import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 
 public class SocketAgentInterface implements AgentInterface {
@@ -17,21 +19,24 @@ public class SocketAgentInterface implements AgentInterface {
 
   public void run(){
     try{
+      ServerSocket serverSocket = new ServerSocket(0, 0, InetAddress.getByName("localhost"));
+      String address = serverSocket.getInetAddress().toString();
+      int port = serverSocket.getLocalPort();
       // Register agent with the game.
       Socket registrationSocket = new Socket(url_, signUpPort_);
       BufferedWriter out = new BufferedWriter(new OutputStreamWriter(registrationSocket.getOutputStream()));
       out.write(agent_.identity()+"\n");
+      out.write(address+"\n");
+      out.write(port+"\n");
       out.flush();
-      out.close();
+      //out.close();
       BufferedReader in = new BufferedReader(new InputStreamReader(registrationSocket.getInputStream()));
-      String portS = in.readLine();
       String debrief = in.readLine();
-      in.close();
+      //in.close();
       registrationSocket.close();
-      int port = Integer.parseInt(portS);
       agent_.initialState(stateMaster_.parseString(debrief));
       // Play the game.
-      Socket socket = new Socket(url_, port);
+      Socket socket = serverSocket.accept();
       out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
       in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
       while(!socket.isClosed()){
