@@ -22,44 +22,41 @@ public class EchoBot implements Agent {
    */
   public static void main(String[] args) {
     EchoBot instance = new EchoBot();
-    if (args.length < 2) {
-      instance.error("Bad arguments");
-    } else {
-      try {
-        String url = args[0];
-        int port = Integer.parseInt(args[1]);
-        AgentInterface connection = new SocketAgentInterface(url,
-            port,
-            instance,
-            new Echo.EchoStateMaster(),
-            new Echo.EchoActionMaster());
-        connection.run();
-      } catch (Error e) {
-        instance.error(e.toString());
-      }
+    try {
+      String url = "localhost";
+      System.out.println("Enter port number of host:");
+      BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+      int port = Integer.parseInt(stdIn.readLine());
+      AgentInterface connection = new SocketAgentInterface(url,
+          port,
+          instance,
+          new Echo.EchoStateMaster(),
+          new Echo.EchoActionMaster());
+      connection.run();
+    } catch (Exception e) {
+      instance.error(e);
     }
   }
 
   @Override
   public Action decide(Action[] actions, State state) {
-    System.out.println("Previous Messages ");
-    System.out.println(state.toString());
+    System.out.println("Previous Messages:");
+    System.out.print(state.toString());
     StringBuilder message = new StringBuilder();
     try {
       BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
       String temp = stdIn.readLine();
-      stdIn.close();
       for(int i = 0; i<temp.length(); i++){
         String c = temp.substring(i, i+1);
-        for(int j = 0; j<actions.length; j++){
-          if(c.equals(actions[j].toString())){
+        for(Action action : actions){
+          if(c.equals(action.toString())){
             message.append(c);
           }
         }
       }
     }
     catch(IOException e){
-      error(e.toString());
+      error(e);
     }
     return new Echo.EchoAction(message.toString());
   }
@@ -85,12 +82,32 @@ public class EchoBot implements Agent {
   }
 
   @Override
-  public void debug(String str) {
-    System.out.println("Debug for " + identity() + ": " + str);
+  public void debug(Object o1) {
+    String message = "Debug for "+identity()+": "+o1;
+    System.out.println(message);
   }
 
   @Override
-  public void error(String str) {
-    System.out.println("Error for " + identity() + ": " + str);
+  public void debug(Object o1, Object o2) {
+    String message = "Debug for "+identity()+": "+o1+o2;
+    System.out.println(message);
+  }
+
+  @Override
+  public void debug(Object o1, Object o2, Object o3) {
+    String message = "Debug for "+identity()+": "+o1+o2+o3;
+    System.out.println(message);
+  }
+
+  @Override
+  public void debug(Object o1, Object o2, Object o3, Object o4) {
+    String message = "Debug for "+identity()+": "+o1+o2+o3+o4;
+    System.out.println(message);
+  }
+
+  @Override
+  public void error(Object obj) {
+    String message = "Error for "+identity()+": "+obj;
+    System.out.println(message);
   }
 }

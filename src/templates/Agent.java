@@ -14,8 +14,9 @@ public interface Agent {
 
   /**
    * Note a change in the visible state
-   * These changes will be given again when decide is called, so this is only if you want to be able to visualise what
-   * is happening outside of your turn.
+   * This is helpful if there is more than one agent, so state can change without this agent performing actions.
+   * For example, you may want to send state updates each time so you can visualise what is happening outside of your
+   * turn.
    * @param update a change in the visible state
    */
   void updateState(State update);
@@ -37,16 +38,19 @@ public interface Agent {
   /**
    * React to debug information from the interface.
    * Suggestion is to print to console or ignore it.
-   * @param str debug information as String
+   * @param obj debug information as any Object (therefore it has a to string method)
    */
-  void debug(String str);
+  void debug(Object obj);
+  void debug(Object o1, Object o2);
+  void debug(Object o1, Object o2, Object o3);
+  void debug(Object o1, Object o2, Object o3, Object o4);
 
   /**
    * React to error information from the interface.
    * Suggestion is to print to console.
-   * @param str error information as String
+   * @param obj error information as any Object (therefore it has a to string method)
    */
-  void error(String str);
+  void error(Object obj);
 
   /**
    * Called when the AgentInterface has died and/or the Game is over.

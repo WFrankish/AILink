@@ -23,14 +23,23 @@ public interface Game {
   /**
    * React to debug information from the interface.
    * Suggestion is to print to console or ignore it.
-   * @param str debug information as String
+   * @param obj debug information as any Object (therefore it has a toString method)
    */
-  void debug(String str);
+  void debug(Object obj);
+  void debug(Object o1, Object o2);
+  void debug(Object o1, Object o2, Object o3);
+  void debug(Object o1, Object o2, Object o3, Object o4);
 
   /**
    * React to error information from the interface.
    * Suggestion is to print to console.
-   * @param str error information as String
+   * @param obj error information as any Object (therefore it has a toString method)
    */
-  void error(String str);
+  void error(Object obj);
+
+  /**
+   * Called when the GameInterface has died.
+   * Does not have to end your Game.
+   */
+  void end();
 }

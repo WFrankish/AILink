@@ -22,19 +22,37 @@ public class Echo {
     }
 
     public void run(){
+      // Request two agents
+      gameInterface_.requestAgent();
       gameInterface_.requestAgent();
       EchoActionMaster actionMaster = new EchoActionMaster();
       EchoStateMaster stateMaster = new EchoStateMaster();
       String transcript = "";
-      while(true){
-        Action action = gameInterface_.requestAction(agents_.get(0), stateMaster.parseString(transcript), actionMaster.parseActions("abcdefghijklmnopqrtstuvxyz"));
-        transcript += action.toString();
+      Boolean cont = true;
+      int agent = 0;
+      while(cont){
+        // The state is our full transcript of messages
+        State state = stateMaster.parseString(transcript);
+        // The available actions is a character set
+        Action[] actions = actionMaster.parseActions("abcdefghijklmnopqrtstuvxyz\\");
+        // We get an action (a message) from the agent
+        // TODO: Check for illegal actions
+        Action action = gameInterface_.requestAction(agents_.get(agent), state, actions);
+        String actionS = action.toString();
+        // If the message is empty, we shut down.
+        cont = !actionS.equals("");
+        // Add the message to the transcript
+        transcript += actionS;
         transcript += "\n";
+        // Switch agents
+        agent = 1 - agent;
       }
+      gameInterface_.end();
     }
 
     @Override
     public State registerAgent(String agent, int agentNo) {
+      // Nothing fancy, just debug that we've added agents, and give them a welcome message.
       agents_.add(agentNo);
       debug("Added agent "+agentNo);
       debug("Now the number of agents is: "+agents_.size());
@@ -47,13 +65,38 @@ public class Echo {
     }
 
     @Override
-    public void debug(String str) {
-      System.out.println("Debug for " + identity() + ": " + str);
+    public void debug(Object o1) {
+      String message = "Debug for "+identity()+": "+o1;
+      System.out.println(message);
     }
 
     @Override
-    public void error(String str) {
-      System.out.println("Error for " + identity() + ": " + str);
+    public void debug(Object o1, Object o2) {
+      String message = "Debug for "+identity()+": "+o1+o2;
+      System.out.println(message);
+    }
+
+    @Override
+    public void debug(Object o1, Object o2, Object o3) {
+      String message = "Debug for "+identity()+": "+o1+o2+o3;
+      System.out.println(message);
+    }
+
+    @Override
+    public void debug(Object o1, Object o2, Object o3, Object o4) {
+      String message = "Debug for "+identity()+": "+o1+o2+o3+o4;
+      System.out.println(message);
+    }
+
+    @Override
+    public void error(Object obj) {
+      String message = "Error for "+identity()+": "+obj;
+      System.out.println(message);
+    }
+
+    @Override
+    public void end() {
+
     }
 
     private GameInterface gameInterface_;
