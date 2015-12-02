@@ -39,16 +39,25 @@ public class SocketAgentInterface implements AgentInterface {
       inOut.writeLine(address);
       inOut.writeLine(port+"");
       // Receive the initial state information for the game.
-      agent_.debug("Received debrief.");
-      String debrief = inOut.readLine();
-      registrationSocket.close();
-      agent_.initialState(stateMaster_.parseString(debrief));
+      String header = inOut.readLine();
+      if(header.equals("ACCEPT")) {
+        String debrief = inOut.readLine();
+        agent_.debug("Received debrief: ", debrief);
+        registrationSocket.close();
+        agent_.initialState(stateMaster_.parseString(debrief));
+      }
+      else{
+        registrationSocket.close();
+        agent_.error("We were rejected by the game.");
+        end();
+        return;
+      }
       // Play the game.
       Socket socket = serverSocket.accept();
       inOut = new InOut(socket);
       while(!socket.isClosed()){
-        String type = inOut.readLine();
-        if(type.equals("REQUEST")) {
+        header = inOut.readLine();
+        if(header.equals("REQUEST")) {
           // Communication is a request for an action, so we will be passed a state and a list of actions
           String stateStr = inOut.readLine();
           agent_.debug("Received State: ", stateStr);
@@ -60,7 +69,7 @@ public class SocketAgentInterface implements AgentInterface {
           agent_.debug("Writing action: ", action);
           inOut.writeLine(action.toString());
         }
-        else if(type.equals("UPDATE")){
+        else if(header.equals("UPDATE")){
           // Communication is a state update, so we wil be passed a state.
           String stateStr = inOut.readLine();
           agent_.debug("Received State: ", stateStr);
@@ -73,6 +82,7 @@ public class SocketAgentInterface implements AgentInterface {
           end();
         }
       }
+      agent_.debug("Game over.");
     }
     catch(IOException e){
       agent_.error(e);

@@ -43,13 +43,19 @@ public class SocketGameInterface implements GameInterface {
       game_.debug("Address is ", agentAddress, " and Port is "+agentPort);
       // tell the game about the agent, so it may construct an initial state for the agent
       State debrief = game_.registerAgent(agent, agents_.size());
-      game_.debug("Delivering debrief: ", debrief);
-      // TODO: Allow the game to reject agents
-      // send the agent its initial state
-      inOut.writeLine(debrief.toString());
-      // construct our new chanel and add it to the list
-      Socket agentSocket = new Socket(InetAddress.getByName("localhost"), agentPort);
-      agents_.add(new InOut(agentSocket));
+      if(debrief==null) {
+        // reject the agent
+        inOut.writeLine("CLOSE");
+      }
+      else{
+        game_.debug("Delivering debrief: ", debrief);
+        // send the agent its initial state
+        inOut.writeLine("ACCEPT");
+        inOut.writeLine(debrief.toString());
+        // construct our new chanel and add it to the list
+        Socket agentSocket = new Socket(InetAddress.getByName("localhost"), agentPort);
+        agents_.add(new InOut(agentSocket));
+      }
       inOut.close();
     }
     catch(IOException e){
