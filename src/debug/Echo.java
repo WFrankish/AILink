@@ -54,7 +54,7 @@ public class Echo {
           String actionStr = response.toString();
           // Check they have only used allowed characters.
           String allowedChars = actionMaster.actionsToString(actions);
-          for (int i = 0; i < actionStr.length(); i++) {
+          for (int i = 0; i < actionStr.length() && agentsAlive[agent]; i++) {
             String c = actionStr.substring(i, i + 1);
             if (!allowedChars.contains(c)) {
               System.out.println("Agent "+agent+" has tried to perform an illegal action.");
@@ -72,6 +72,7 @@ public class Echo {
             transcript.append("\n");
           }
           else{
+            // If they cheated, kick them.
             gameInterface_.terminateAgent(agent);
             remainingAgents--;
           }
