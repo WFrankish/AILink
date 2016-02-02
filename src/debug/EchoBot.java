@@ -18,7 +18,7 @@ public class EchoBot implements Agent {
 
   /**
    * Runs the EchoBot, connecting to the given url at the given port.
-   * @param args url port
+   * @param args
    */
   public static void main(String[] args) {
     EchoBot instance = new EchoBot();

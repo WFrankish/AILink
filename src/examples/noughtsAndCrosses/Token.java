@@ -32,6 +32,18 @@ public class Token {
     }
   }
 
+  public String toString(){
+    if(me_==1){
+      return "Nought";
+    }
+    else if(me_==2){
+      return "Cross";
+    }
+    else{
+      return "Blank";
+    }
+  }
+
   private int me_ = 0;
 
   private Token(int me){
