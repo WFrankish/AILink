@@ -22,6 +22,22 @@ public class Token {
       return me_ == 2;
     }
 
+  public Token opposite(){
+    if(me_ == 1){
+      return new Token(2);
+    }
+    else if(me_ == 2){
+      return new Token(1);
+    }
+    else{
+      return new Token(0);
+    }
+  }
+
+  public Token clone(){
+    return new Token(me_);
+  }
+
   public boolean equals(Object o){
     if(o instanceof Token){
       Token that = (Token) o;

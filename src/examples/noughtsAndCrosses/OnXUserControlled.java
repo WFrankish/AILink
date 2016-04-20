@@ -35,9 +35,16 @@ public class OnXUserControlled implements Agent {
     try {
       while(true) {
         System.out.println("Choose a gridspace, available: ");
-        for(Action action : actions){
-          System.out.print(action);
+        StringBuilder builder = new StringBuilder();
+        int i;
+        for( i = 0; i<actions.length-1; i++){
+          builder.append(actions[i].toString());
+          builder.append(", ");
         }
+        if(i<actions.length){
+          builder.append(actions[i].toString());
+        }
+        System.out.println(builder.toString());
         System.out.println();
         BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
         String temp = stdIn.readLine();
