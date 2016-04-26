@@ -20,20 +20,24 @@ public interface Game {
    */
   String identity();
 
+  /** Transmit important information to human game master
+   * Do not ignore.
+   * @param obj information as any Object (therefore it has a toString method)
+   */
+  void message(Object obj);
+
   /**
    * React to debug information from the interface.
    * Suggestion is to print to console or ignore it.
+   * @param isMajor importance level of debug information.
    * @param obj debug information as any Object (therefore it has a toString method)
    */
-  void debug(Object obj);
-  void debug(Object o1, Object o2);
-  void debug(Object o1, Object o2, Object o3);
-  void debug(Object o1, Object o2, Object o3, Object o4);
+  void debug(boolean isMajor, Object obj);
 
   /**
    * React to error information from the interface.
    * Suggestion is to print to console.
-   * @param obj error information as any Object (therefore it has a toString method)
+   * @param obj error information as any Object (therefore it has a toString method.
    */
   void error(Object obj);
 

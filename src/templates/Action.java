@@ -9,4 +9,11 @@ public interface Action {
    * @return Action as String
    */
   String toString();
+
+  /**
+   * Convert the Action into String format. This should be Human Readable.
+   * @return Action as Human Readable String
+   */
+  String toReadable();
+
 }

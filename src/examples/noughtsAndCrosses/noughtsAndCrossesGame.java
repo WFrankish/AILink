@@ -5,6 +5,7 @@ import templates.Action;
 import templates.Game;
 import templates.GameInterface;
 import templates.State;
+import tools.ParseTools;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -13,12 +14,13 @@ import java.util.ArrayList;
 public class noughtsAndCrossesGame implements Game {
 
   public static void main(String[] args){
-    new noughtsAndCrossesGame().run();
+    boolean showMinor = (args.length > 0 && ParseTools.parseTruth(args[0]));
+    new noughtsAndCrossesGame(showMinor).run();
   }
 
-  public  noughtsAndCrossesGame(){
+  public  noughtsAndCrossesGame(boolean showMinor){
     gameInterface_ = new SocketGameInterface(this, new OnXActionMaster());
-    //debug_ = false;
+    showMinor_ = showMinor;
     for(int x = 0; x < 3; x++){
       for(int y = 0; y < 3; y++){
         grid_[y][x] = Token.blank();
@@ -58,7 +60,7 @@ public class noughtsAndCrossesGame implements Game {
           done = doAction(action, Token.nought());
         }
       }
-      System.out.println(crosses_.gridToNiceString());
+      System.out.println(crosses_.toReadable());
       actions = getActions();
     }
     gameInterface_.updateState(cross_, crosses_);
@@ -153,33 +155,15 @@ public class noughtsAndCrossesGame implements Game {
   }
 
   @Override
-  public void debug(Object o1) {
-    if(debug_) {
-      String message = "Debug for " + identity() + ": " + o1;
-      System.out.println(message);
-    }
+  public void message(Object obj) {
+    String message = "Message to Game Master: " + obj;
+    System.out.println(message);
   }
 
   @Override
-  public void debug(Object o1, Object o2) {
-    if(debug_) {
-      String message = "Debug for " + identity() + ": " + o1 + o2;
-      System.out.println(message);
-    }
-  }
-
-  @Override
-  public void debug(Object o1, Object o2, Object o3) {
-    if(debug_) {
-      String message = "Debug for " + identity() + ": " + o1 + o2 + o3;
-      System.out.println(message);
-    }
-  }
-
-  @Override
-  public void debug(Object o1, Object o2, Object o3, Object o4) {
-    if (debug_) {
-      String message = "Debug for " + identity() + ": " + o1 + o2 + o3 + o4;
+  public void debug(boolean isMajor, Object obj) {
+    if(isMajor || showMinor_) {
+      String message = "Debug for " + identity() + ": " + obj;
       System.out.println(message);
     }
   }
@@ -269,6 +253,6 @@ public class noughtsAndCrossesGame implements Game {
   private OnXState noughts_ = new OnXState(Token.nought());
   private OnXState crosses_ = new OnXState(Token.cross());
   private GameInterface gameInterface_;
-  private boolean debug_ = true;
   private int players_ = 0;
+  private boolean showMinor_;
 }

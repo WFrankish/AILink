@@ -27,6 +27,16 @@ public class OnXActionMaster implements ActionMaster {
   }
 
   @Override
+  public String actionsToReadable(Action[] actions) {
+    StringBuilder builder = new StringBuilder();
+    for( Action action : actions){
+      builder.append(action.toReadable());
+      builder.append('\n');
+    }
+    return builder.toString();
+  }
+
+  @Override
   public Action parseAction(String input) {
     int x = Integer.parseInt(input.substring(0,1));
     int y = Integer.parseInt(input.substring(1,2));

@@ -10,4 +10,5 @@ public interface StateMaster {
    * @return templates.State information as State
    */
   State parseString(String input);
+
 }

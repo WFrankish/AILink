@@ -2,6 +2,7 @@ package examples.noughtsAndCrosses;
 
 import socketInterface.SocketAgentInterface;
 import templates.*;
+import tools.ParseTools;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -9,7 +10,8 @@ import java.util.ArrayList;
 
 public class OnXDynamicBot implements Agent{
   public static void main(String[] args) {
-    OnXDynamicBot instance = new OnXDynamicBot();
+    boolean showMinor = (args.length > 0 && ParseTools.parseTruth(args[0]));
+    OnXDynamicBot instance = new OnXDynamicBot(showMinor);
     try {
       String url = "localhost";
       System.out.println("Enter port number of host:");
@@ -26,10 +28,14 @@ public class OnXDynamicBot implements Agent{
     }
   }
 
+  public OnXDynamicBot(boolean showMinor){
+    showMinor_ = showMinor;
+  }
+
   @Override
   public Action decide(Action[] actions, State state) {
     OnXState state2 = (OnXState) state;
-    System.out.println(state2.gridToNiceString());
+    System.out.println(state2.toReadable());
     // print actions nicely
     StringBuilder builder = new StringBuilder();
     int i;
@@ -117,7 +123,7 @@ public class OnXDynamicBot implements Agent{
   @Override
   public void updateState(State update) {
     OnXState state = (OnXState) update;
-    System.out.println(state.gridToNiceString());
+    System.out.println(state.toReadable());
     Token winner = state.getWinner();
     if(winner.equals(me_)){
       System.out.println("I won!");
@@ -136,33 +142,9 @@ public class OnXDynamicBot implements Agent{
   }
 
   @Override
-  public void debug(Object o1) {
-    if(debug_) {
-      String message = "Debug for " + identity() + ": " + o1;
-      System.out.println(message);
-    }
-  }
-
-  @Override
-  public void debug(Object o1, Object o2) {
-    if(debug_) {
-      String message = "Debug for " + identity() + ": " + o1 + o2;
-      System.out.println(message);
-    }
-  }
-
-  @Override
-  public void debug(Object o1, Object o2, Object o3) {
-    if(debug_) {
-      String message = "Debug for " + identity() + ": " + o1 + o2 + o3;
-      System.out.println(message);
-    }
-  }
-
-  @Override
-  public void debug(Object o1, Object o2, Object o3, Object o4) {
-    if (debug_) {
-      String message = "Debug for " + identity() + ": " + o1 + o2 + o3 + o4;
+  public void debug(boolean isMajor, Object obj) {
+    if(isMajor || showMinor_) {
+      String message = "Debug for " + identity() + ": " + obj;
       System.out.println(message);
     }
   }
@@ -180,7 +162,7 @@ public class OnXDynamicBot implements Agent{
 
   private Node node_;
 
-  private boolean debug_ = false;
+  private boolean showMinor_;
   private Token me_;
 
   private class Node{

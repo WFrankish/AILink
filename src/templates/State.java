@@ -1,7 +1,7 @@
 package templates;
 
 /**
- * Visisble State for a Game. This is not necessarily all of the information held about the state by the game,
+ * Visible State for a Game. This is not necessarily all of the information held about the state by the game,
  * only that which is to be communicated to the agent.
  */
 public interface State {
@@ -10,4 +10,10 @@ public interface State {
    * @return State as String
    */
   String toString();
+
+  /**
+   * Convert the State into Human Readable format.
+   * @return State as Human Readable String
+   */
+  String toReadable();
 }

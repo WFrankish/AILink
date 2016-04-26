@@ -16,7 +16,12 @@ public class OnXAction implements Action {
   }
 
   public String toString(){
-    return ""+x_+y_;
+    return "" + x_ + y_;
+  }
+
+  @Override
+  public String toReadable() {
+    return "x: " + x_ + ", y: " + y_;
   }
 
   public int getX(){

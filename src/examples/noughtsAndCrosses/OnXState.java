@@ -88,7 +88,8 @@ public class OnXState implements State {
     return builder.toString();
   }
 
-  public String gridToNiceString(){
+  @Override
+  public String toReadable(){
     StringBuilder builder = new StringBuilder("You are: ");
     if(me_.isNought()){
       builder.append("O\n");

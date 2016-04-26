@@ -21,8 +21,8 @@ public class SocketGameInterface implements GameInterface {
       // construct a registration chanel
       serverSocket_ = new ServerSocket(0, 0, InetAddress.getByName("localhost"));
       signUpPort_ = serverSocket_.getLocalPort();
-      game_.debug("sign up address is "+ serverSocket_.getInetAddress().toString());
-      game_.debug("sign up port is "+signUpPort_);
+      game_.message("sign up address is " + serverSocket_.getInetAddress().toString());
+      game_.message("sign up port is " + signUpPort_);
     }
     catch (IOException e){
       game_.error(e.toString());
@@ -37,10 +37,10 @@ public class SocketGameInterface implements GameInterface {
       Socket clientSocket = serverSocket_.accept();
       InOut inOut = new InOut(clientSocket);
       String agent = inOut.readLine();
-      game_.debug("Agent ", agent, " is registering.");
+      game_.debug(true, "Agent " + agent + " is registering.");
       String agentAddress = inOut.readLine();
       int agentPort = Integer.parseInt(inOut.readLine());
-      game_.debug("Address is ", agentAddress, " and Port is "+agentPort);
+      game_.debug(true, "Address is " + agentAddress + " and Port is "+agentPort);
       // tell the game about the agent, so it may construct an initial state for the agent
       State debrief = game_.registerAgent(agent, agents_.size());
       if(debrief==null) {
@@ -48,7 +48,7 @@ public class SocketGameInterface implements GameInterface {
         inOut.writeLine("CLOSE");
       }
       else{
-        game_.debug("Delivering debrief: ", debrief);
+        game_.debug(false, "Delivering debrief: " + debrief.toReadable());
         // send the agent its initial state
         inOut.writeLine("ACCEPT");
         inOut.writeLine(debrief.toString());
@@ -68,17 +68,15 @@ public class SocketGameInterface implements GameInterface {
     InOut inOut = agents_.get(agentID);
     try {
       // Send the agent a state and a list of actions
-      game_.debug("Requesting action from ", agentID);
+      game_.debug(false, "Requesting action from " + agentID);
       inOut.writeLine("REQUEST");
-      String stateS = state.toString();
-      game_.debug("Sending state: ", stateS);
-      inOut.writeLine(stateS);
-      String actionsS = actionMaster_.actionsToString(actions);
-      game_.debug("Sending actions: ", actionsS);
-      inOut.writeLine(actionsS);
+      game_.debug(false, "Sending state: " + state.toReadable());
+      inOut.writeLine(state.toString());
+      game_.debug(false, "Sending actions: " + actionMaster_.actionsToReadable(actions));
+      inOut.writeLine(actionMaster_.actionsToString(actions));
       // Get an action back.
       String action = inOut.readLine();
-      game_.debug("Received action: ", action);
+      game_.debug(false, "Received action: " + action);
       return actionMaster_.parseAction(action);
     }
     catch (IOException e){
@@ -92,11 +90,10 @@ public class SocketGameInterface implements GameInterface {
     InOut inOut = agents_.get(agentID);
     try {
       // Send an agent a state
-      game_.debug("Sending State update to ", agentID);
+      game_.debug(false, "Sending State update to " + agentID);
       inOut.writeLine("UPDATE");
-      String stateS = state.toString();
-      game_.debug("Sending state: ", stateS);
-      inOut.writeLine(stateS);
+      game_.debug(false, "Sending state: " + state.toReadable());
+      inOut.writeLine(state.toString());
       // Expect nothing back, so don't wait.
     }
     catch (IOException e){
@@ -109,7 +106,7 @@ public class SocketGameInterface implements GameInterface {
     InOut inOut = agents_.get(agentID);
     try {
       // Tell the agent the chanel will close.
-      game_.debug("Terminating agent: ", agentID);
+      game_.debug(true, "Terminating agent: " + agentID);
       inOut.writeLine("CLOSE");
     }
     catch (IOException e){
@@ -120,7 +117,7 @@ public class SocketGameInterface implements GameInterface {
   @Override
   public void end() {
     try {
-      game_.debug("Game interface has ended.");
+      game_.debug(true, "Game interface has ended.");
       serverSocket_.close();
       for (InOut io : agents_) {
         io.writeLine("CLOSE");

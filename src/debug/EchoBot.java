@@ -5,6 +5,7 @@ import templates.Action;
 import templates.Agent;
 import templates.AgentInterface;
 import templates.State;
+import tools.ParseTools;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,11 +18,21 @@ import java.io.InputStreamReader;
 public class EchoBot implements Agent {
 
   /**
+   * Constructor
+   * @param showMinor whether to show minor debug messages
+   */
+  public EchoBot(boolean showMinor){
+    showMinor_ = showMinor;
+  }
+
+  /**
    * Runs the EchoBot, connecting to the given url at the given port.
-   * @param args
+   * @param args -t to show all debug messages
    */
   public static void main(String[] args) {
-    EchoBot instance = new EchoBot();
+    EchoBot instance;
+    boolean showMinor = (args.length > 0 && ParseTools.parseTruth(args[0]));
+    instance = new EchoBot(showMinor);
     try {
       String url = "localhost";
       System.out.println("Enter port number of host:");
@@ -82,27 +93,11 @@ public class EchoBot implements Agent {
   }
 
   @Override
-  public void debug(Object o1) {
-    String message = "Debug for "+identity()+": "+o1;
-    System.out.println(message);
-  }
-
-  @Override
-  public void debug(Object o1, Object o2) {
-    String message = "Debug for "+identity()+": "+o1+o2;
-    System.out.println(message);
-  }
-
-  @Override
-  public void debug(Object o1, Object o2, Object o3) {
-    String message = "Debug for "+identity()+": "+o1+o2+o3;
-    System.out.println(message);
-  }
-
-  @Override
-  public void debug(Object o1, Object o2, Object o3, Object o4) {
-    String message = "Debug for "+identity()+": "+o1+o2+o3+o4;
-    System.out.println(message);
+  public void debug(boolean isMajor, Object o1) {
+    if(isMajor || showMinor_) {
+      String message = "Debug for " + identity() + ": " + o1;
+      System.out.println(message);
+    }
   }
 
   @Override
@@ -110,4 +105,9 @@ public class EchoBot implements Agent {
     String message = "Error for "+identity()+": "+obj;
     System.out.println(message);
   }
+
+  /**
+   * Whether to show minor debug messages.
+   */
+  private boolean showMinor_;
 }

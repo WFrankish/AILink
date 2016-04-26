@@ -2,6 +2,7 @@ package debug;
 
 import socketInterface.SocketGameInterface;
 import templates.*;
+import tools.ParseTools;
 
 import java.util.ArrayList;
 
@@ -12,7 +13,8 @@ import java.util.ArrayList;
 public class Echo {
 
   public static void main(String[] args){
-    EchoGame game = new Echo().new EchoGame();
+    boolean showMinor = (args.length > 1 && ParseTools.parseTruth(args[1]));
+    EchoGame game = new Echo().new EchoGame(showMinor);
     try {
       int noAgents = Integer.parseInt(args[0]);
       game.run(noAgents);
@@ -24,7 +26,8 @@ public class Echo {
 
   private class EchoGame implements Game{
 
-    public EchoGame(){
+    public EchoGame(boolean showMinor){
+      showMinor_ = showMinor;
       gameInterface_ = new SocketGameInterface(this, new EchoActionMaster());
     }
 
@@ -48,7 +51,7 @@ public class Echo {
           // The state is our full transcript of messages
           State state = stateMaster.parseString(transcript.toString());
           // The available actions is a character set
-          Action[] actions = actionMaster.parseActions("abcdefghijklmnopqrtstuvxyz\\");
+          Action[] actions = actionMaster.parseActions( randomCharSet() );
           // We get an action (a message) from the agent
           Action response = gameInterface_.requestAction(agents_.get(agent), state, actions);
           String actionStr = response.toString();
@@ -109,27 +112,17 @@ public class Echo {
     }
 
     @Override
-    public void debug(Object o1) {
-      String message = "Debug for "+identity()+": "+o1;
+    public void message(Object obj) {
+      String message = "Message to Game Master: " + obj;
       System.out.println(message);
     }
 
     @Override
-    public void debug(Object o1, Object o2) {
-      String message = "Debug for "+identity()+": "+o1+o2;
-      System.out.println(message);
-    }
-
-    @Override
-    public void debug(Object o1, Object o2, Object o3) {
-      String message = "Debug for "+identity()+": "+o1+o2+o3;
-      System.out.println(message);
-    }
-
-    @Override
-    public void debug(Object o1, Object o2, Object o3, Object o4) {
-      String message = "Debug for "+identity()+": "+o1+o2+o3+o4;
-      System.out.println(message);
+    public void debug(boolean isMajor, Object obj) {
+      if(isMajor ||showMinor_) {
+        String message = "Debug for " + identity() + ": " + obj;
+        System.out.println(message);
+      }
     }
 
     @Override
@@ -141,6 +134,17 @@ public class Echo {
     @Override
     public void end() {
 
+    }
+
+    private String randomCharSet(){
+      String allChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ";
+      StringBuilder result = new StringBuilder();
+      for(int i = 0; i < allChars.length(); i++){
+        if(Math.random() > 0.1){
+          result.append(allChars.charAt(i));
+        }
+      }
+      return result.toString();
     }
 
     private boolean actBuggy_ = true;
@@ -168,6 +172,16 @@ public class Echo {
     }
 
     @Override
+    public String actionsToReadable(Action[] actions) {
+      StringBuilder builder = new StringBuilder();
+      for(Action a : actions){
+        builder.append(a.toString());
+        builder.append(" ");
+      }
+      return builder.toString();
+    }
+
+    @Override
     public Action parseAction(String input) {
       return new EchoAction(input);
     }
@@ -183,6 +197,11 @@ public class Echo {
 
     @Override
     public String toString() {
+      return msg_;
+    }
+
+    @Override
+    public String toReadable() {
       return msg_;
     }
 
@@ -209,6 +228,14 @@ public class Echo {
       return transcript_;
     }
 
+    @Override
+    public String toReadable() {
+      return transcript_;
+    }
+
     private String transcript_;
   }
+
+  private boolean showMinor_;
+
 }
