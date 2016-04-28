@@ -113,7 +113,6 @@ public class OnXDynamicBot implements Agent{
   public void initialState(State debrief) {
     OnXState state = (OnXState) debrief;
     me_ = state.getMe();
-    System.out.println("I am "+me_);
     if(me_.isCross()){
       node_ = new Node();
       node_.populate();

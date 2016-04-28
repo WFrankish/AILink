@@ -71,7 +71,6 @@ public class OnXUserControlled implements Agent {
   public void initialState(State debrief) {
     OnXState state = (OnXState) debrief;
     me_ = state.getMe();
-    System.out.println("You are "+me_);
   }
 
   @Override

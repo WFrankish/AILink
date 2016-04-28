@@ -60,7 +60,6 @@ public class noughtsAndCrossesGame implements Game {
           done = doAction(action, Token.nought());
         }
       }
-      System.out.println(crosses_.toReadable());
       actions = getActions();
     }
     gameInterface_.updateState(cross_, crosses_);
@@ -72,9 +71,9 @@ public class noughtsAndCrossesGame implements Game {
 
   @Override
   public State registerAgent(String agent, int agentNo) {
-    System.out.println(agent + " wants to play.");
+    message(agent + " wants to play.");
     if(players_ == 0) {
-      System.out.println("Enter X for cross and O for nought, enter nothing to reject");
+      message("Enter X for cross and O for nought, enter nothing to reject");
       try {
         BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
         String temp = stdIn.readLine();
@@ -102,7 +101,7 @@ public class noughtsAndCrossesGame implements Game {
     }
     else{
       if(noughtSet_){
-        System.out.println("Enter X for cross, enter nothing to reject");
+        message("Enter X for cross, enter nothing to reject");
         try {
           BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
           String temp = stdIn.readLine();
@@ -124,7 +123,7 @@ public class noughtsAndCrossesGame implements Game {
         }
       }
       else{
-        System.out.println("Enter O for nought, enter nothing to reject");
+        message("Enter O for nought, enter nothing to reject");
         try {
           BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
           String temp = stdIn.readLine();
