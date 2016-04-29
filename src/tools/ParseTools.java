@@ -25,4 +25,25 @@ public class ParseTools {
     }
     return (decider == 'y' || decider == 'Y' || decider == 't' || decider == 'T');
   }
+
+  public static int find(String[] args, String target){
+    for(int i = 0; i<args.length; i++){
+      if(args[i].equals(target)){
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  public static int findVal(String[] args, String mark, int defaultVal){
+    try{
+      int pos = find(args, mark);
+      return Integer.parseInt(args[pos + 1]);
+    }
+    catch(Exception e){
+      return defaultVal;
+    }
+  }
+
+
 }
