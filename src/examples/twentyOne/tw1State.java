@@ -54,6 +54,18 @@ public class tw1State {
 
   }
 
+  public static class Shuffle implements State{
+    @Override
+    public String toString() {
+      return "S";
+    }
+
+    @Override
+    public String toReadable() {
+      return "The Deck was shuffled.";
+    }
+  }
+
   public static class Decks implements State{
 
     public Decks(int no){
@@ -67,10 +79,23 @@ public class tw1State {
 
     @Override
     public String toReadable() {
-      return no_ + "decks in play";
+      return no_ + "decks added to play";
     }
 
     private int no_;
+  }
+
+  public static class Ack implements State{
+
+    @Override
+    public String toString() {
+      return "";
+    }
+
+    @Override
+    public String toReadable() {
+      return "";
+    }
   }
 
 }

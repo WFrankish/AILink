@@ -8,6 +8,7 @@ import tools.ParseTools;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 public class twentyOneGame implements Game {
 
@@ -19,12 +20,12 @@ public class twentyOneGame implements Game {
     new twentyOneGame(maxPlayers, showMinor, decks, rounds).run();
   }
 
-  public twentyOneGame(int maxPlayers, boolean showMinor, int decks, int rounds){
+  public twentyOneGame(int maxPlayers, boolean showMinor, int noDecks, int noRounds){
     gameInterface_ = new SocketGameInterface(this, new tw1ActionMaster());
     showMinor_ = showMinor;
     maxPlayers_ = maxPlayers;
-    decks_ = decks;
-    rounds_ = rounds;
+    noDecks_ = noDecks;
+    noRounds_ = noRounds;
     debug(false, "Showing all debug messages");
     debug(true, "Expected players: " + maxPlayers_);
   }
@@ -33,23 +34,74 @@ public class twentyOneGame implements Game {
     while(players_ < maxPlayers_){
       gameInterface_.requestAgent();
     }
-    addDecks(decks_, false);
-    shuffle(false);
-    for(int i = 0; i<rounds_; i++){
+    deck_ = new Deck(noDecks_);
+    for(int i = 0; i< noRounds_; i++){
       round();
     }
   }
 
-  public void round(){
+  private void round(){
+    ArrayList<Card>[] hands = new ArrayList[maxPlayers_+1];
 
+    deck_.discardAll();
   }
 
-  public void addDecks(int no, boolean announce){
+  private Card drawCard(int agentNo){
+    Card card = deck_.draw();
+    if(agentNo == maxPlayers_){
+      tw1State.Deal deal = new tw1State.Deal(false, true, card);
+      for(int i = 0; i<maxPlayers_; i++){
+        gameInterface_.updateState(i, deal);
+      }
+    } else{
 
+    }
+    return card;
   }
 
-  public void shuffle(boolean announce){
+  private int softTotal(ArrayList<Card> hand){
+    int result = 0;
+    for(Card c : hand){
+      switch (c.getRank().charAt(0)){
+        case 'A':
+          result += 1; break;
+        case '2':
+          result += 2; break;
+        case '3':
+          result += 2; break;
+        case '4':
+          result += 2; break;
+        case '5':
+          result += 2; break;
+        case '6':
+          result += 2; break;
+        case '7':
+          result += 2; break;
+        case '8':
+          result += 2; break;
+        case '9':
+          result += 2; break;
+        default:
+          result += 10;
+      }
+    }
+    return result;
+  }
 
+  private void addDecks(int no){
+    deck_.addDecks(no);
+    tw1State.Decks decks = new tw1State.Decks(no);
+    for(int i = 0; i<maxPlayers_; i++){
+      gameInterface_.updateState(i, decks);
+    }
+  }
+
+  private void shuffle(){
+    deck_.shuffle();
+    tw1State.Shuffle shuffle = new tw1State.Shuffle();
+    for(int i = 0; i<maxPlayers_; i++){
+      gameInterface_.updateState(i, shuffle);
+    }
   }
 
   @Override
@@ -64,7 +116,7 @@ public class twentyOneGame implements Game {
           char c = temp.charAt(0);
           if (c == 'y' || c == 'Y') {
             players_++;
-            return new tw1State.Decks(decks_);
+            return new tw1State.Decks(noDecks_);
           } else if (c == 'n' || c == 'N') {
             return null;
           }
@@ -106,7 +158,8 @@ public class twentyOneGame implements Game {
   private GameInterface gameInterface_;
   private int players_;
   private int maxPlayers_;
-  private int decks_;
-  private int rounds_;
+  private int noDecks_;
+  private int noRounds_;
   private boolean showMinor_;
+  private Deck deck_;
 }
