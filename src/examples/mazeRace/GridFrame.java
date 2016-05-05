@@ -1,40 +1,37 @@
 package examples.mazeRace;
 
+import common.Coord;
+
 import java.awt.*;
 
 public class GridFrame {
 
-  public GridFrame(int dimX, int dimY){
-    fast_ = true;
+  public GridFrame(int dimX, int dimY, Color bg){
     frame_ = new GridFrameP();
-    frame_.setBackground(Color.black);
+    frame_.setBackground(bg);
     frame_.setSize(5 * dimX + 5, 5 * dimY + 5);
     frame_.setResizable(false);
     frame_.setUndecorated(true);
-    frame_.setVisible(true);
     grid_ = new Color[dimX][dimY];
     for(int i = 0; i < grid_.length; i++){
       for(int j = 0; j < grid_[i].length; j++){
-        grid_[i][j] = Color.black;
+        grid_[i][j] = bg;
       }
     }
   }
 
-  public void redraw(boolean force){
-    if(force){
-      frame_.repaint();
-    }
-    else if(!fast_) {
+  public void redraw(){
+    if(frame_.isVisible()) {
         frame_.paint(frame_.getGraphics());
     }
   }
 
-  public void setColour(Color colour, int x, int y){
-    grid_[x][y] = colour;
+  public void setColour(Color colour, Coord loc){
+    grid_[loc.x][loc.y] = colour;
   }
 
-  public void setIsFast(boolean fast){
-    fast_ = fast;
+  public void makeVisible(boolean b){
+    frame_.setVisible(b);
   }
 
   private Color[][] grid_;
@@ -51,7 +48,5 @@ public class GridFrame {
       }
     }
   }
-
-  private boolean fast_;
 
 }

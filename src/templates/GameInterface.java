@@ -6,6 +6,7 @@ package templates;
 public interface GameInterface {
   /**
    * request that we attempt to set up communication with an agent
+   * This method is expected to call back to the game with the method registerAgent();
    */
   void requestAgent();
 

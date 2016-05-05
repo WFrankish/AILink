@@ -1,5 +1,7 @@
 package examples.mazeRace;
 
+import common.Cardinal;
+import common.Coord;
 import socketInterface.SocketGameInterface;
 import templates.Action;
 import templates.Game;
@@ -7,7 +9,6 @@ import templates.GameInterface;
 import templates.State;
 import tools.ParseTools;
 
-import java.awt.*;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -44,113 +45,62 @@ public class mazeRaceGame implements Game {
   }
 
   public void run(int noRooms, int seed){
-    GridFrame frame = new GridFrame(dimX_, dimY_);
-    Maze maze = new Maze(frame, dimX_, dimY_, seed, noRooms);
+    Maze maze = new Maze(dimX_, dimY_, seed, noRooms);
     while(players_ < maxPlayers_){
       gameInterface_.requestAgent();
     }
-    MazeState.Dimension[] playerLocs = new MazeState.Dimension[players_];
-    if(players_ > 0){
-      playerLocs[0] = new MazeState.Dimension(1,1);
-      frame.setColour(colours[0], 1, 1);
+    for(int i = 0; i < players_; i++){
+      maze.setPlayer();
     }
-    if(players_ > 1){
-      playerLocs[1] = new MazeState.Dimension(1, dimY_ -2);
-      frame.setColour(colours[1], 1, dimY_ - 2);
-    }
-    if(players_ > 2){
-      playerLocs[2] = new MazeState.Dimension(dimX_ -2,1);
-      frame.setColour(colours[2], dimX_ - 2, 1);
-    }
-    if(players_ > 3){
-      playerLocs[3] = new MazeState.Dimension(dimX_ -2, dimY_ -2);
-      frame.setColour(colours[3], dimX_ - 2, dimY_ - 2);
-    }
-    frame.setColour(Color.orange, dimX_ / 2, dimY_ / 2);
-    frame.redraw(true);
     int winner = -1;
-    frame.setIsFast(false);
     while(winner < 0){
       for(int i = 0; i < players_; i++){
         ArrayList<MovementAction> actions = new ArrayList<MovementAction>();
-        int x = playerLocs[i].getX();
-        int y = playerLocs[i].getY();
+        Coord loc = maze.playerLoc(i);
         int nDist = 1;
-        boolean nOp = false;
-        while(!maze.wallAt(x, y-nDist) && !nOp){
-          if(playersHere(x, y-nDist, playerLocs)){
-            nOp = true;
-          }
-          else{
-            nDist++;
-          }
+        while(!maze.wallAt(loc.x, loc.y-nDist) && !maze.playerAt(loc.x, loc.y-nDist)){
+          nDist++;
         }
+        boolean nOp = maze.playerAt(loc.x, loc.y-nDist);
         if(nDist > 1){
           actions.add(MovementAction.North);
         }
         int eDist = 1;
-        boolean eOp = false;
-        while(!maze.wallAt(x-eDist, y) && !eOp){
-          if(playersHere(x-eDist, y, playerLocs)){
-            eOp = true;
-          }
-          else{
-            eDist++;
-          }
+        while(!maze.wallAt(loc.x-eDist, loc.y) && !maze.playerAt(loc.x-eDist, loc.y)){
+          eDist++;
         }
+        boolean eOp = maze.playerAt(loc.x-eDist, loc.y);
         if(eDist > 1){
           actions.add(MovementAction.East);
         }
         int sDist = 1;
-        boolean sOp = false;
-        while(!maze.wallAt(x, y+sDist) && !sOp){
-          if(playersHere(x, y+sDist, playerLocs)){
-            sOp = true;
-          }
-          else{
-            sDist++;
-          }
+        while(!maze.wallAt(loc.x, loc.y+sDist) && !maze.playerAt(loc.x, loc.y+sDist)){
+          sDist++;
         }
+        boolean sOp = maze.playerAt(loc.x, loc.y+sDist);
         if(sDist > 1){
           actions.add(MovementAction.South);
         }
         int wDist = 1;
-        boolean wOp = false;
-        while(!maze.wallAt(x+wDist, y) && !wOp){
-          if(playersHere(x+wDist, y, playerLocs)){
-            wOp = true;
-          }
-          else{
-            wDist++;
-          }
+        while(!maze.wallAt(loc.x+wDist, loc.y) && !maze.playerAt(loc.x+wDist, loc.y)){
+          wDist++;
         }
-        if(wDist > 1) {
+        boolean wOp = maze.playerAt(loc.x+wDist, loc.y);
+        if(wDist > 1){
           actions.add(MovementAction.West);
         }
         if(!actions.isEmpty()){
           MazeState.Sight state = new MazeState.Sight(nOp, nDist, eOp, eDist, sOp, sDist, wOp, wDist);
-          MovementAction[] actionsA = actions.toArray(new MovementAction[0]);
+          MovementAction[] actionsA = actions.toArray(new MovementAction[1]);
           Action result = gameInterface_.requestAction(i, state, actionsA);
-          MovementAction movement = (MovementAction) result;
-          int nx = playerLocs[i].getX();
-          int ny = playerLocs[i].getY();
-          if(movement.equals(MovementAction.North)){
-            ny--;
+          Cardinal movement = ((MovementAction) result).getDirection();
+          if(maze.canMove(i, movement)){
+            maze.move(i, movement);
           }
-          else if(movement.equals(MovementAction.East)){
-            nx--;
+          else {
+            maze.killPlayer(i);
           }
-          else if(movement.equals(MovementAction.South)){
-            ny++;
-          }
-          else{
-            nx++;
-          }
-          playerLocs[i] = new MazeState.Dimension(nx, ny);
-          frame.setColour(Color.white, x, y);
-          frame.setColour(colours[i], nx, ny);
-          frame.redraw(false);
-          if(nx == dimX_ / 2 && ny == dimY_ / 2){
+          if(maze.hasWon(i)){
             winner = i;
           }
         }
@@ -213,16 +163,6 @@ public class mazeRaceGame implements Game {
 
   }
 
-  private boolean playersHere(int x, int y, MazeState.Dimension[] locs){
-    for(int i = 0; i<locs.length; i++){
-      MazeState.Dimension dim = locs[i];
-      if(dim.getX()== x && dim.getY()==y){
-        return true;
-      }
-    }
-    return false;
-  }
-
   private String[] agentNames_;
   private int dimX_;
   private int dimY_;
@@ -230,5 +170,4 @@ public class mazeRaceGame implements Game {
   private int maxPlayers_;
   private GameInterface gameInterface_;
   private boolean showMinor_;
-  private Color[] colours = new Color[]{ Color.red, Color.blue, Color.green, Color.magenta};
 }

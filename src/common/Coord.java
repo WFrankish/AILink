@@ -1,16 +1,16 @@
-package tools;
+package common;
 
-public class CoOrds {
+public class Coord {
 
-  public CoOrds(int ix, int iy){
+  public Coord(int ix, int iy){
     x = ix;
     y = iy;
   }
 
   public boolean equals(Object obj){
     boolean result = false;
-    if(obj instanceof CoOrds){
-      CoOrds that = (CoOrds) obj;
+    if(obj instanceof Coord){
+      Coord that = (Coord) obj;
       result = (this.x == that.x && this.y == that.y);
     }
 

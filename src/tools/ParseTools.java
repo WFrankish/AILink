@@ -49,5 +49,4 @@ public class ParseTools {
     return Math.min(max, Math.max(min, val));
   }
 
-
 }

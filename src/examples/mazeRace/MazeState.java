@@ -1,7 +1,7 @@
 package examples.mazeRace;
 
 import templates.State;
-import tools.CoOrds;
+import common.Coord;
 
 public class MazeState {
 
@@ -147,7 +147,7 @@ public class MazeState {
   public static class Dimension implements State {
 
     public Dimension(int x, int y) {
-      dim_ = new CoOrds(x, y);
+      dim_ = new Coord(x, y);
     }
 
     public int getX() {
@@ -168,7 +168,7 @@ public class MazeState {
       return "Maze is " + dim_.x +  " wide and " + dim_.y + " long";
     }
 
-    private CoOrds dim_;
+    private Coord dim_;
   }
 
   public static class Winner implements State{
