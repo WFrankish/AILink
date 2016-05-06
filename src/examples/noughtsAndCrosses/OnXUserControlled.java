@@ -12,7 +12,7 @@ import java.io.InputStreamReader;
 
 public class OnXUserControlled implements Agent {
   public static void main(String[] args) {
-    boolean showMinor = (args.length > 0 && ParseTools.parseTruth(args[0]));
+    boolean showMinor = ParseTools.find(args, "-d") > -1;
     OnXUserControlled instance = new OnXUserControlled(showMinor);
     try {
       String url = "localhost";
@@ -35,12 +35,17 @@ public class OnXUserControlled implements Agent {
   }
 
   @Override
+  public boolean checkGame(String ident) {
+    return ident.equals("Noughts and Crosses");
+  }
+
+  @Override
   public Action decide(Action[] actions, State state) {
-    OnXState state2 = (OnXState) state;
-    System.out.println(state2.toReadable());
+    OnXState.Grid grid = (OnXState.Grid) state;
+    System.out.println(grid.toReadable());
     try {
       while(true) {
-        System.out.println("Choose a gridspace, available: ");
+        System.out.println("Choose a grid-space, available: ");
         StringBuilder builder = new StringBuilder();
         int i;
         for( i = 0; i<actions.length-1; i++){
@@ -68,30 +73,33 @@ public class OnXUserControlled implements Agent {
   }
 
   @Override
-  public void initialState(State debrief) {
-    OnXState state = (OnXState) debrief;
-    me_ = state.getMe();
-  }
-
-  @Override
   public void updateState(State update) {
-    OnXState state = (OnXState) update;
-    System.out.println(state.toReadable());
-    Token winner = state.getWinner();
-    if(winner.equals(me_)){
-      System.out.println("I won!");
+    if(update instanceof OnXState.Player){
+      OnXState.Player state = (OnXState.Player) update;
+      me_ = state.getMe();
     }
-    else if(winner.isNought() || winner.isCross()){
-      System.out.println("Opponent won.");
+    else if(update instanceof OnXState.Grid){
+      OnXState.Grid grid = (OnXState.Grid) update;
+      System.out.println("Final result: ");
+      System.out.println(grid.toReadable());
     }
-    else{
-      System.out.println("No winner");
+    else {
+      OnXState.Winner state = (OnXState.Winner) update;
+      System.out.println(state.toReadable());
+      Token winner = state.getWinner();
+      if (winner.equals(me_)) {
+        System.out.println("You won!");
+      } else if ( winner != Token.BLANK ) {
+        System.out.println("Opponent won.");
+      } else {
+        System.out.println("No winner");
+      }
     }
   }
 
   @Override
   public String identity() {
-    return "Noughts and Crosses Player";
+    return "Noughts and Crosses Human Player";
   }
 
   @Override
@@ -106,11 +114,6 @@ public class OnXUserControlled implements Agent {
   public void error(Object obj) {
     String message = "Error for "+identity()+": "+obj;
     System.out.println(message);
-  }
-
-  @Override
-  public void end() {
-    System.out.println("Game over.");
   }
 
   private boolean showMinor_;

@@ -30,29 +30,40 @@ public class EchoBot implements Agent {
    * @param args -t to show all debug messages
    */
   public static void main(String[] args) {
-    EchoBot instance;
     boolean showMinor = (args.length > 0 && ParseTools.parseTruth(args[0]));
-    instance = new EchoBot(showMinor);
-    try {
-      String url = "localhost";
-      System.out.println("Enter port number of host:");
-      BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
-      int port = Integer.parseInt(stdIn.readLine());
-      AgentInterface connection = new SocketAgentInterface(url,
-          port,
-          instance,
-          new Echo.EchoStateMaster(),
-          new Echo.EchoActionMaster());
-      connection.run();
-    } catch (Exception e) {
-      instance.error(e);
+    while(true) {
+      EchoBot instance = new EchoBot(showMinor);
+      try {
+        String url = "localhost";
+        System.out.println("Enter port number of host:");
+        BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+        int port = Integer.parseInt(stdIn.readLine());
+        AgentInterface connection = new SocketAgentInterface(url,
+            port,
+            instance,
+            new Echo.EchoStateMaster(),
+            new Echo.EchoActionMaster());
+        connection.run();
+      } catch (Exception e) {
+        instance.error(e);
+      }
     }
+  }
+
+  @Override
+  public boolean checkGame(String ident) {
+    return ident.equals("Echo");
   }
 
   @Override
   public Action decide(Action[] actions, State state) {
     System.out.println("Previous Messages:");
     System.out.print(state.toString());
+    System.out.println("Allowed characters:");
+    for(Action action : actions){
+      System.out.print(action);
+    }
+    System.out.println();
     StringBuilder message = new StringBuilder();
     try {
       BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
@@ -73,23 +84,13 @@ public class EchoBot implements Agent {
   }
 
   @Override
-  public void initialState(State debrief) {
-    System.out.println("Initial message is: " + debrief.toString());
-  }
-
-  @Override
   public void updateState(State update) {
-    // Do nothing.
+    System.out.println("Message Received: " + update.toReadable());
   }
 
   @Override
   public String identity() {
     return "EchoBot";
-  }
-
-  @Override
-  public void end() {
-
   }
 
   @Override

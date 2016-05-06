@@ -36,32 +36,40 @@ public class OnXRandomBot implements Agent{
   }
 
   @Override
+  public boolean checkGame(String ident) {
+    return ident.equals("Noughts and Crosses");
+  }
+
+  @Override
   public Action decide(Action[] actions, State state) {
-    OnXState state2 = (OnXState) state;
-    System.out.println(state2.toReadable());
+    OnXState.Grid grid = (OnXState.Grid) state;
+    System.out.println(grid.toReadable());
     double random = (Math.random() * actions.length);
     return actions[(int) random];
   }
 
   @Override
-  public void initialState(State debrief) {
-    OnXState state = (OnXState) debrief;
-    me_ = state.getMe();
-  }
-
-  @Override
   public void updateState(State update) {
-    OnXState state = (OnXState) update;
-    System.out.println(state.toReadable());
-    Token winner = state.getWinner();
-    if(winner.equals(me_)){
-      System.out.println("I won!");
+    if(update instanceof OnXState.Player){
+      OnXState.Player state = (OnXState.Player) update;
+      me_ = state.getMe();
     }
-    else if(winner.isNought() || winner.isCross()){
-      System.out.println("Opponent won.");
+    else if(update instanceof OnXState.Grid){
+      OnXState.Grid grid = (OnXState.Grid) update;
+      System.out.println("Final result: ");
+      System.out.println(grid.toReadable());
     }
-    else{
-      System.out.println("No winner");
+    else {
+      OnXState.Winner state = (OnXState.Winner) update;
+      System.out.println(state.toReadable());
+      Token winner = state.getWinner();
+      if (winner.equals(me_)) {
+        System.out.println("I won!");
+      } else if ( winner != Token.BLANK ) {
+        System.out.println("Opponent won.");
+      } else {
+        System.out.println("No winner");
+      }
     }
   }
 
@@ -82,11 +90,6 @@ public class OnXRandomBot implements Agent{
   public void error(Object obj) {
     String message = "Error for "+identity()+": "+obj;
     System.out.println(message);
-  }
-
-  @Override
-  public void end() {
-    System.out.println("Game over.");
   }
 
   private boolean showMinor_;

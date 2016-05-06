@@ -4,6 +4,14 @@ package templates;
  * An Agent for an AILink Program
  */
 public interface Agent {
+
+  /**
+   * Check with the Agent (or the Agent's human master) whether it wants to play this game.
+   * @param ident The name of the game;
+   * @return
+   */
+  boolean checkGame(String ident);
+
   /**
    * Given the current visible state and available actions, decide on an action to perform.
    * @param actions available actions
@@ -20,13 +28,6 @@ public interface Agent {
    * @param update a change in the visible state
    */
   void updateState(State update);
-
-  /**
-   * Not any important initial state, for example what team you are on, what specific scenario this is, what class you
-   * are playing, etc.
-   * @param debrief important initial state
-   */
-  void initialState(State debrief);
 
   /**
    * Give the String that identifies your Agent. Mostly for human use, so uniqueness is helpful but not mandatory.
@@ -50,9 +51,4 @@ public interface Agent {
    */
   void error(Object obj);
 
-  /**
-   * Called when the AgentInterface has died and/or the Game is over.
-   * Does not have to end your Agent.
-   */
-  void end();
 }

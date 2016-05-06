@@ -1,5 +1,6 @@
 package socketInterface;
 
+import common.Tuple;
 import templates.*;
 
 import java.io.*;
@@ -21,45 +22,45 @@ public class SocketGameInterface implements GameInterface {
       // construct a registration chanel
       serverSocket_ = new ServerSocket(0, 0, InetAddress.getByName("localhost"));
       signUpPort_ = serverSocket_.getLocalPort();
-      game_.message("sign up address is " + serverSocket_.getInetAddress().toString());
-      game_.message("sign up port is " + signUpPort_);
+      game_.message("Sign up address is " + serverSocket_.getInetAddress().toString());
+      game_.message("Sign up port is " + signUpPort_);
     }
     catch (IOException e){
       game_.error(e.toString());
+      game_.interfaceFailed();
     }
   }
 
   @Override
-  public void requestAgent() {
+  public Tuple<Integer, String> findAgent() {
     try {
-      // accept a communication on the registration chanel
-      // we are expecting the name of an agent, and the address and port for a new chanel to the agent
-      Socket clientSocket = serverSocket_.accept();
-      InOut inOut = new InOut(clientSocket);
-      String agent = inOut.readLine();
-      game_.debug(true, "Agent " + agent + " is registering.");
-      String agentAddress = inOut.readLine();
-      int agentPort = Integer.parseInt(inOut.readLine());
-      game_.debug(true, "Address is " + agentAddress + " and Port is "+agentPort);
-      // tell the game about the agent, so it may construct an initial state for the agent
-      State debrief = game_.registerAgent(agent, agents_.size());
-      if(debrief==null) {
-        // reject the agent
-        inOut.writeLine("CLOSE");
-      }
-      else{
-        game_.debug(false, "Delivering debrief: " + debrief.toReadable());
-        // send the agent its initial state
+      while(true) {
+        // accept a communication on the registration chanel
+        // we are expecting the name of an agent, and the address and port for a new chanel to the agent
+        Socket clientSocket = serverSocket_.accept();
+        InOut inOut = new InOut(clientSocket);
+        String agent = inOut.readLine();
+        String agentAddress = inOut.readLine();
+        int agentPort = Integer.parseInt(inOut.readLine());
         inOut.writeLine("ACCEPT");
-        inOut.writeLine(debrief.toString());
-        // construct our new chanel and add it to the list
-        Socket agentSocket = new Socket(InetAddress.getByName("localhost"), agentPort);
-        agents_.add(new InOut(agentSocket));
+        inOut.writeLine(game_.identity());
+        String response = inOut.readLine();
+        if(response.equals("ACCEPT")) {
+          int agentId = agentCount_;
+          agentCount_++;
+          game_.debug(true, "Agent " + agent + " is registering.");
+          game_.debug(true, "Address is " + agentAddress + " and Port is " + agentPort);
+          // construct our new chanel and add it to the list
+          Socket agentSocket = new Socket(InetAddress.getByName("localhost"), agentPort);
+          agents_.add(agentId, new InOut(agentSocket));
+          inOut.close();
+          return new Tuple<Integer, String>(agentId, agent);
+        }
       }
-      inOut.close();
     }
     catch(IOException e){
       game_.error(e.toString());
+      return null;
     }
   }
 
@@ -102,12 +103,14 @@ public class SocketGameInterface implements GameInterface {
   }
 
   @Override
-  public void terminateAgent(int agentID) {
+  public void terminateAgent(int agentID, String msg) {
     InOut inOut = agents_.get(agentID);
     try {
       // Tell the agent the chanel will close.
       game_.debug(true, "Terminating agent: " + agentID);
       inOut.writeLine("CLOSE");
+      inOut.writeLine(msg);
+      inOut.close();
     }
     catch (IOException e){
       game_.error(e.toString());
@@ -119,9 +122,8 @@ public class SocketGameInterface implements GameInterface {
     try {
       game_.debug(true, "Game interface has ended.");
       serverSocket_.close();
-      for (InOut io : agents_) {
-        io.writeLine("CLOSE");
-        io.close();
+      for (int i = 0; i<agentCount_; i++) {
+        terminateAgent(i, "Simulation over.");
       }
     }
     catch (IOException e){
@@ -132,7 +134,7 @@ public class SocketGameInterface implements GameInterface {
   ServerSocket serverSocket_;
   int signUpPort_;
   private LinkedList<InOut> agents_ = new LinkedList<InOut>();
-
+  private int agentCount_;
   private Game game_;
   private ActionMaster actionMaster_;
 

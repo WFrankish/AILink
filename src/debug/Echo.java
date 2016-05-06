@@ -1,9 +1,12 @@
 package debug;
 
+import common.Tuple;
 import socketInterface.SocketGameInterface;
 import templates.*;
 import tools.ParseTools;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 /**
@@ -13,28 +16,50 @@ import java.util.ArrayList;
 public class Echo {
 
   public static void main(String[] args){
-    boolean showMinor = (args.length > 1 && ParseTools.parseTruth(args[1]));
+    boolean showMinor = ParseTools.find(args, "-d") > -1;
     EchoGame game = new Echo().new EchoGame(showMinor);
-    try {
-      int noAgents = Integer.parseInt(args[0]);
-      game.run(noAgents);
-    }
-    catch(Exception e){
-      game.error("Bad arguments: Please input a number representing the number of agents.");
-    }
+    int noAgents = ParseTools.findVal(args, "-p", 2);
+    game.run(noAgents);
   }
 
   private class EchoGame implements Game{
 
     public EchoGame(boolean showMinor){
       showMinor_ = showMinor;
-      gameInterface_ = new SocketGameInterface(this, new EchoActionMaster());
+      interface_ = new SocketGameInterface(this, new EchoActionMaster());
     }
 
     public void run(int noAgents){
+      agents_ = new ArrayList<Integer>();
       // Request two agents
       while (agents_.size() < noAgents){
-        gameInterface_.requestAgent();
+        Tuple<Integer, String> agentInfo = interface_.findAgent();
+        int agentNo = agentInfo.fst;
+        String agentName = agentInfo.snd;
+        message(agentName + "wants to join.");
+        while(true){
+          message("Enter y to accept, n to reject.");
+          try {
+            BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+            String temp = stdIn.readLine();
+            if (temp.length() > 0) {
+              char c = temp.charAt(0);
+              if (c == 'y' || c == 'Y') {
+                agents_.add(agentInfo.fst);
+                debug(true, "Added agent " + agentName);
+                debug(true, "Now the number of agents is: " + agents_.size());
+                interface_.updateState(agentInfo.fst, new EchoState("Welcome!"));
+                break;
+              } else if (c == 'n' || c == 'N') {
+                debug(true, "Rejecting agent " + agentName);
+                interface_.terminateAgent(agentNo, "Rejected.");
+                break;
+              }
+            }
+          } catch (Exception e) {
+            error(e);
+          }
+        }
       }
       EchoActionMaster actionMaster = new EchoActionMaster();
       EchoStateMaster stateMaster = new EchoStateMaster();
@@ -53,7 +78,7 @@ public class Echo {
           // The available actions is a character set
           Action[] actions = actionMaster.parseActions( randomCharSet() );
           // We get an action (a message) from the agent
-          Action response = gameInterface_.requestAction(agents_.get(agent), state, actions);
+          Action response = interface_.requestAction(agents_.get(agent), state, actions);
           String actionStr = response.toString();
           // Check they have only used allowed characters.
           String allowedChars = actionMaster.actionsToString(actions);
@@ -76,7 +101,7 @@ public class Echo {
           }
           else{
             // If they cheated, kick them.
-            gameInterface_.terminateAgent(agent);
+            interface_.terminateAgent(agent, "Invalid Action chosen.");
             remainingAgents--;
           }
         }
@@ -86,24 +111,7 @@ public class Echo {
           agent = 0;
         }
       }
-      gameInterface_.end();
-    }
-
-    @Override
-    public State registerAgent(String agent, int agentNo) {
-      if(actBuggy_) {
-        actBuggy_ = false;
-        // Nothing fancy, just debug that we've added agents, and give them a welcome message.
-        agents_.add(agentNo);
-        System.out.println("Added agent " + agent);
-        System.out.println("Now the number of agents is: " + agents_.size());
-        return new EchoState("Welcome");
-      }
-      else{
-        actBuggy_ = true;
-        System.out.println("Rejecting agent " + agent);
-        return null;
-      }
+      interface_.end();
     }
 
     @Override
@@ -132,7 +140,7 @@ public class Echo {
     }
 
     @Override
-    public void end() {
+    public void interfaceFailed() {
 
     }
 
@@ -147,9 +155,8 @@ public class Echo {
       return result.toString();
     }
 
-    private boolean actBuggy_ = true;
-    private GameInterface gameInterface_;
-    private ArrayList<Integer> agents_ = new ArrayList<Integer>();
+    private GameInterface interface_;
+    private ArrayList<Integer> agents_;
   }
 
   public static class EchoActionMaster implements ActionMaster {

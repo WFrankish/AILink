@@ -86,7 +86,7 @@ public class InOut {
         out_.write(c);
       }
     }
-    // Always end message with a newline.
+    // Always interfaceFailed message with a newline.
     out_.write("\n");
     out_.flush();
   }

@@ -1,10 +1,10 @@
 package examples.noughtsAndCrosses;
 
+import common.Tuple;
 import socketInterface.SocketGameInterface;
 import templates.Action;
 import templates.Game;
 import templates.GameInterface;
-import templates.State;
 import tools.ParseTools;
 
 import java.io.BufferedReader;
@@ -14,23 +14,22 @@ import java.util.ArrayList;
 public class noughtsAndCrossesGame implements Game {
 
   public static void main(String[] args){
-    boolean showMinor = (args.length > 0 && ParseTools.parseTruth(args[0]));
-    new noughtsAndCrossesGame(showMinor).run();
+    boolean showMinor = ParseTools.find(args, "-d") > -1;
+    while(true) {
+      new noughtsAndCrossesGame(showMinor).run();
+    }
   }
 
   public  noughtsAndCrossesGame(boolean showMinor){
-    gameInterface_ = new SocketGameInterface(this, new OnXActionMaster());
+    interface_ = new SocketGameInterface(this, new OnXActionMaster());
     showMinor_ = showMinor;
-    for(int x = 0; x < 3; x++){
-      for(int y = 0; y < 3; y++){
-        grid_[y][x] = Token.blank();
-      }
-    }
+    state_ = new OnXState.Grid();
   }
 
   public void run(){
     while(players_ < 2){
-      gameInterface_.requestAgent();
+      Tuple<Integer, String> agentInfo = interface_.findAgent();
+      registerAgent(agentInfo);
     }
     boolean done = false;
     boolean crossTurn = true;
@@ -38,39 +37,38 @@ public class noughtsAndCrossesGame implements Game {
     while(!done && actions.length>0){
       if(crossTurn){
         crossTurn = false;
-        Action temp = gameInterface_.requestAction(cross_, crosses_, actions);
+        Action temp = interface_.requestAction(cross_, state_, actions);
         OnXAction action = (OnXAction) temp;
         if(!validAction(action)){
           done = true;
-          setWinner(Token.nought());
+          setWinner(Token.NOUGHT);
         }
         else{
-          done = doAction(action, Token.cross());
+          done = doAction(action, Token.CROSS);
         }
        }
       else{
         crossTurn = true;
-        Action temp = gameInterface_.requestAction(nought_, noughts_, getActions());
+        Action temp = interface_.requestAction(nought_, state_, getActions());
         OnXAction action = (OnXAction) temp;
         if(!validAction(action)){
           done = true;
-          setWinner(Token.cross());
+          setWinner(Token.CROSS);
         }
         else {
-          done = doAction(action, Token.nought());
+          done = doAction(action, Token.NOUGHT);
         }
       }
       actions = getActions();
     }
-    gameInterface_.updateState(cross_, crosses_);
-    gameInterface_.updateState(nought_, noughts_);
-    gameInterface_.terminateAgent(cross_);
-    gameInterface_.terminateAgent(nought_);
-    gameInterface_.end();
+    interface_.terminateAgent(cross_, "Game Over.");
+    interface_.terminateAgent(nought_, "Game Over.");
+    interface_.end();
   }
 
-  @Override
-  public State registerAgent(String agent, int agentNo) {
+  public void registerAgent(Tuple<Integer, String> agentInfo) {
+    int agentNo = agentInfo.fst;
+    String agent = agentInfo.snd;
     message(agent + " wants to play.");
     if(players_ == 0) {
       message("Enter X for cross and O for nought, enter nothing to reject");
@@ -78,25 +76,25 @@ public class noughtsAndCrossesGame implements Game {
         BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
         String temp = stdIn.readLine();
         if (temp.length() == 0) {
-          return null;
+          interface_.terminateAgent(agentNo, "Rejected.");
         } else {
           char c = temp.charAt(0);
           if (c == 'X' || c == 'x') {
             cross_ = agentNo;
             players_++;
-            return crosses_;
+            interface_.updateState(agentNo, new OnXState.Player(Token.CROSS));
           } else if (c == 'O' || c == 'o' || c == '0') {
             nought_ = agentNo;
             noughtSet_ = true;
             players_++;
-            return noughts_;
+            interface_.updateState(agentNo, new OnXState.Player(Token.NOUGHT));
           } else {
-            return null;
+            interface_.terminateAgent(agentNo, "Rejected.");
           }
         }
       } catch (Exception e) {
         error(e);
-        return null;
+        interface_.terminateAgent(agentNo, "Issue at registration phase.");
       }
     }
     else{
@@ -106,20 +104,20 @@ public class noughtsAndCrossesGame implements Game {
           BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
           String temp = stdIn.readLine();
           if (temp.length() == 0) {
-            return null;
+            interface_.terminateAgent(agentNo, "Rejected.");
           } else {
             char c = temp.charAt(0);
             if (c == 'X' || c == 'x') {
               cross_ = agentNo;
               players_++;
-              return crosses_;
+              interface_.updateState(agentNo, new OnXState.Player(Token.CROSS));
             } else {
-              return null;
+              interface_.terminateAgent(agentNo, "Rejected.");
             }
           }
         } catch (Exception e) {
           error(e);
-          return null;
+          interface_.terminateAgent(agentNo, "Issue at registration phase.");
         }
       }
       else{
@@ -128,21 +126,21 @@ public class noughtsAndCrossesGame implements Game {
           BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
           String temp = stdIn.readLine();
           if (temp.length() == 0) {
-            return null;
+            interface_.terminateAgent(agentNo, "Rejected.");
           } else {
             char c = temp.charAt(0);
             if (c == 'O' || c == 'o' || c == '0') {
               nought_ = agentNo;
               noughtSet_ = true;
               players_++;
-              return noughts_;
+              interface_.updateState(agentNo, new OnXState.Player(Token.NOUGHT));
             } else {
-              return null;
+              interface_.terminateAgent(agentNo, "Rejected.");
             }
           }
         } catch (Exception e) {
           error(e);
-          return null;
+          interface_.terminateAgent(agentNo, "Issue at registration phase.");
         }
       }
     }
@@ -174,21 +172,21 @@ public class noughtsAndCrossesGame implements Game {
   }
 
   @Override
-  public void end() {
+  public void interfaceFailed() {
 
   }
 
   private Action[] getActions(){
     ArrayList<Action> actions = new ArrayList<Action>();
-    for(int x = 0; x < 3; x++){
-      for(int y = 0; y < 3; y++){
-        Token token = grid_[y][x];
-        if(!token.isCross() && !token.isNought()){
+    for(int y = 0; y < 3; y++){
+      for(int x = 0; x < 3; x++){
+        Token token = state_.getTokenAt(x, y);
+        if(token == Token.BLANK){
           actions.add(new OnXAction(x, y));
         }
       }
     }
-    return actions.toArray(new Action[0]);
+    return actions.toArray(new Action[1]);
   }
 
   private boolean validAction(OnXAction action){
@@ -197,61 +195,72 @@ public class noughtsAndCrossesGame implements Game {
     }
     int x = action.getX();
     int y = action.getY();
-    Token token = grid_[y][x];
-    return !token.isCross() && !token.isNought();
+    Token token = state_.getTokenAt(x, y);
+    return token == Token.BLANK;
   }
 
   public boolean doAction(OnXAction action, Token token){
     int x = action.getX();
     int y = action.getY();
-    noughts_.setTokenAt(x, y, token);
-    crosses_.setTokenAt(x, y, token);
-    grid_[y][x] = token;
+    state_.setTokenAt(x, y, token);
     // search for new line of token given
     // try horizontal lines
     boolean line = true;
+    boolean full = false;
     for(int nx = 0; nx < 3 && line; nx++){
-      line = token.equals(grid_[y][nx]);
+      line = (token == state_.getTokenAt(nx, y));
     }
     if(!line){
       // no horizontal lines, try vertical
       line = true;
       for(int ny = 0; ny < 3 && line; ny++){
-        line = token.equals(grid_[ny][x]);
+        line = (token == state_.getTokenAt(x, ny));
       }
     }
     if(!line && (x == y) ){
       // try diagonal
       line = true;
       for(int n = 0; n < 3 && line; n++){
-        line = token.equals(grid_[n][n]);
+        line = (token == state_.getTokenAt(n, n));
       }
     }
     if(!line && (x == 2-y) ){
       // try other diagonal
       line = true;
       for(int n = 0; n < 3 && line; n++){
-        line = token.equals(grid_[n][2-n]);
+        line = (token == state_.getTokenAt(2-n, n));
       }
     }
     if(line){
       setWinner(token);
     }
-    return line;
+    else{
+      full = true;
+      for(int i = 0; i<2; i++){
+        for(int j = 0; j<2; j++){
+          full &= state_.getTokenAt(i, j) != Token.BLANK;
+        }
+      }
+      if(full){
+        setWinner(Token.BLANK);
+      }
+    }
+    return line || full;
   }
 
   private void setWinner(Token token){
-    noughts_.setWinner(token);
-    crosses_.setWinner(token);
+    OnXState.Winner winner = new OnXState.Winner(token);
+    interface_.updateState(cross_, state_);
+    interface_.updateState(cross_, winner);
+    interface_.updateState(nought_, state_);
+    interface_.updateState(nought_, winner);
   }
 
   private int nought_;
   private int cross_;
   private boolean noughtSet_ = false;
-  private Token[][] grid_ = new Token[3][3];
-  private OnXState noughts_ = new OnXState(Token.nought());
-  private OnXState crosses_ = new OnXState(Token.cross());
-  private GameInterface gameInterface_;
+  private OnXState.Grid state_ = new OnXState.Grid();
+  private GameInterface interface_;
   private int players_ = 0;
   private boolean showMinor_;
 }

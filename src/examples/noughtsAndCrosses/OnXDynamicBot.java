@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 public class OnXDynamicBot implements Agent{
   public static void main(String[] args) {
-    boolean showMinor = (args.length > 0 && ParseTools.parseTruth(args[0]));
+    boolean showMinor = ParseTools.find(args, "-d") > -1;
     OnXDynamicBot instance = new OnXDynamicBot(showMinor);
     try {
       String url = "localhost";
@@ -33,9 +33,14 @@ public class OnXDynamicBot implements Agent{
   }
 
   @Override
+  public boolean checkGame(String ident) {
+    return ident.equals("Noughts and Crosses");
+  }
+
+  @Override
   public Action decide(Action[] actions, State state) {
-    OnXState state2 = (OnXState) state;
-    System.out.println(state2.toReadable());
+    OnXState.Grid grid = (OnXState.Grid) state;
+    System.out.println(grid.toReadable());
     // print actions nicely
     StringBuilder builder = new StringBuilder();
     int i;
@@ -55,13 +60,13 @@ public class OnXDynamicBot implements Agent{
       boolean done = false;
       for(int x = 0; x < 3 && !done; x++){
         for(int y = 0; y < 3 && !done; y++){
-          if(((OnXState) state).getTokenAt(x, y).equals(Token.cross())){
+          if(grid.getTokenAt(x, y).equals(Token.CROSS)){
             crossAction = new OnXAction(x, y);
             done = true;
           }
         }
       }
-      node_.addAction(crossAction, Token.cross());
+      node_.addAction(crossAction, Token.CROSS);
       node_ = node_.children.get(0);
       node_.populate();
     }
@@ -83,7 +88,7 @@ public class OnXDynamicBot implements Agent{
           // found it, move to its branch and break out of for loop
           int index = node_.getAction(missing);
           if(index==-1){
-            node_.addAction(missing, me_.opposite());
+            node_.addAction(missing, opposite_);
             index = node_.getAction(missing);
           }
           node_ = node_.getNode(index);
@@ -97,11 +102,11 @@ public class OnXDynamicBot implements Agent{
       OnXAction action2 = (OnXAction) action;
       int next = node_.getAction(action2);
       Token winner = node_.getNode(next).getWinner();
-      if(winner.equals(me_)){
+      if(winner == me_){
         node_ = node_.getNode(next);
         return action;
       }
-      else if(winner.equals(Token.blank())){
+      else if(winner.equals(Token.BLANK)){
         bestSoFar = action2;
       }
     }
@@ -109,29 +114,36 @@ public class OnXDynamicBot implements Agent{
     return bestSoFar;
   }
 
-  @Override
-  public void initialState(State debrief) {
-    OnXState state = (OnXState) debrief;
-    me_ = state.getMe();
-    if(me_.isCross()){
-      node_ = new Node();
-      node_.populate();
-    }
-  }
 
   @Override
   public void updateState(State update) {
-    OnXState state = (OnXState) update;
-    System.out.println(state.toReadable());
-    Token winner = state.getWinner();
-    if(winner.equals(me_)){
-      System.out.println("I won!");
+    if(update instanceof OnXState.Player){
+      OnXState.Player state = (OnXState.Player) update;
+      me_ = state.getMe();
+      if(me_ == Token.CROSS){
+        opposite_ = Token.NOUGHT;
+        node_ = new Node();
+        node_.populate();
+      } else {
+        opposite_ = Token.CROSS;
+      }
     }
-    else if(winner.isNought() || winner.isCross()){
-      System.out.println("Opponent won.");
+    else if(update instanceof OnXState.Grid){
+      OnXState.Grid grid = (OnXState.Grid) update;
+      System.out.println("Final result: ");
+      System.out.println(grid.toReadable());
     }
-    else{
-      System.out.println("No winner");
+    else {
+      OnXState.Winner state = (OnXState.Winner) update;
+      System.out.println(state.toReadable());
+      Token winner = state.getWinner();
+      if (winner.equals(me_)) {
+        System.out.println("I won!");
+      } else if ( winner != Token.BLANK ) {
+        System.out.println("Opponent won.");
+      } else {
+        System.out.println("No winner");
+      }
     }
   }
 
@@ -154,15 +166,10 @@ public class OnXDynamicBot implements Agent{
     System.out.println(message);
   }
 
-  @Override
-  public void end() {
-    System.out.println("Game over.");
-  }
-
   private Node node_;
-
   private boolean showMinor_;
   private Token me_;
+  private Token opposite_;
 
   private class Node{
 
@@ -172,14 +179,9 @@ public class OnXDynamicBot implements Agent{
           remaining_.add(0, new OnXAction(x, y));
         }
       }
-      winner_ = Token.blank();
-      turn_ = Token.nought();
-      grid_ = new Token[3][3];
-      for(int x = 0; x < 3; x++){
-        for(int y = 0; y < 3; y++){
-          grid_[y][x] = Token.blank();
-        }
-      }
+      winner_ = Token.BLANK;
+      turn_ = Token.NOUGHT;
+      grid_ = new OnXState.Grid();
     }
 
     public void addAction(OnXAction action, Token turn){
@@ -191,18 +193,18 @@ public class OnXDynamicBot implements Agent{
         if (children.size() == 0) {
           populate();
         }
-        if(!turn_.equals(me_)){
+        if(turn_ != me_){
           // Next turn is decided by us
-          Token winner = me_.opposite();
+          Token winner = opposite_;
           for(Node child : children){
             Token temp = child.getWinner();
-            if(temp.equals(me_)){
+            if(temp == me_){
               // we can force a win condition
               return me_;
             }
-            else if(temp.equals(Token.blank())){
+            else if(temp == Token.BLANK){
               // there exists a non-lose condition
-              winner = Token.blank();
+              winner = Token.BLANK;
             }
           }
           winner_ = winner;
@@ -213,13 +215,13 @@ public class OnXDynamicBot implements Agent{
           Token winner = me_;
           for(Node child : children){
             Token temp = child.getWinner();
-            if(temp.equals(me_.opposite())){
+            if(temp == opposite_){
               // we can force a win condition
-              return me_.opposite();
+              return opposite_;
             }
-            else if(temp.equals(Token.blank())){
+            else if(temp == Token.BLANK){
               // there exists a non-lose condition
-              winner = Token.blank();
+              winner = Token.BLANK;
             }
           }
           winner_ = winner;
@@ -246,58 +248,71 @@ public class OnXDynamicBot implements Agent{
 
     public void populate(){
       for (OnXAction remains : remaining_) {
-        addAction(remains, turn_.opposite());
+        switch (turn_){
+          case NOUGHT:{
+            addAction(remains, Token.CROSS);
+            break;
+          }
+          case CROSS:{
+            addAction(remains, Token.NOUGHT);
+            break;
+          }
+          case BLANK:{
+            // do nothing
+          }
+        }
       }
     }
 
-    private Node(OnXAction action, ArrayList<OnXAction> remaining, Token[][] grid, Token token){
+    private Node(OnXAction action, ArrayList<OnXAction> remaining, OnXState.Grid grid, Token token){
       remaining_ = (ArrayList<OnXAction>) remaining.clone();
       remaining_.remove(action);
       action_ = action;
+      grid_ = new OnXState.Grid();
       for(int x = 0; x<3; x++){
         for(int y = 0; y<3; y++){
-          grid_[y][x] = grid[y][x].clone();
+          grid_.setTokenAt(x, y, grid.getTokenAt(x, y));
         }
       }
       turn_ = token;
       int x = action.getX();
       int y = action.getY();
-      grid_[y][x] = token;
+      grid_.setTokenAt(x, y, token);
       boolean line = true;
       for(int nx = 0; nx < 3 && line; nx++){
-        line = token.equals(grid_[y][nx]);
+        line = (token == grid_.getTokenAt(nx, y));
       }
       if(!line){
         // no horizontal lines, try vertical
         line = true;
         for(int ny = 0; ny < 3 && line; ny++){
-          line = token.equals(grid_[ny][x]);
+          line = (token == grid_.getTokenAt(x, ny));
         }
       }
       if(!line && (x == y) ){
         // try diagonal
         line = true;
         for(int n = 0; n < 3 && line; n++){
-          line = token.equals(grid_[n][n]);
+          line = (token == grid_.getTokenAt(n, n));
         }
       }
       if(!line && (x == 2-y) ){
         // try other diagonal
         line = true;
         for(int n = 0; n < 3 && line; n++){
-          line = token.equals(grid_[n][2-n]);
+          line = (token == grid_.getTokenAt(2-n, n));
         }
       }
       if(line){
         winner_ = token;
       }
       else if(remaining_.size()==0){
-        winner_ = Token.blank();
+        winner_ = Token.BLANK;
       }
     }
 
     private ArrayList<Node> children = new ArrayList<Node>();
-    private Token[][] grid_ = new Token[3][3];
+    private OnXState.Grid grid_;
     private OnXAction action_;
     private ArrayList<OnXAction> remaining_ = new ArrayList<OnXAction>();
     private Token winner_;

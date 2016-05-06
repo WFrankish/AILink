@@ -1,14 +1,17 @@
 package templates;
 
+import common.Tuple;
+
 /**
  * The interface for a Game connecting it to all of the external Agents participating.
  */
 public interface GameInterface {
+
   /**
-   * request that we attempt to set up communication with an agent
-   * This method is expected to call back to the game with the method registerAgent();
+   * request the interface searches for an agent
+   * @return A tuple of the agent's found unique id and the agent's arbitrary name.
    */
-  void requestAgent();
+  Tuple<Integer, String> findAgent();
 
   /**
    * request an action from an agent, giving it a state and some actions to choose from
@@ -28,9 +31,10 @@ public interface GameInterface {
 
   /**
    * terminate communication with an agent
-   * @param agentID
+   * @param agentID the agent to terminate
+   * @param msg a message to pass to the agent
    */
-  void terminateAgent(int agentID);
+  void terminateAgent(int agentID, String msg);
 
   void end();
 }

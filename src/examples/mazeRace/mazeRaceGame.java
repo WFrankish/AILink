@@ -2,11 +2,11 @@ package examples.mazeRace;
 
 import common.Cardinal;
 import common.Coord;
+import common.Tuple;
 import socketInterface.SocketGameInterface;
 import templates.Action;
 import templates.Game;
 import templates.GameInterface;
-import templates.State;
 import tools.ParseTools;
 
 import java.io.BufferedReader;
@@ -18,16 +18,17 @@ public class mazeRaceGame implements Game {
 
   public static void main(String[] args){
     boolean showMinor = (ParseTools.find(args, "-d") > -1);
+    boolean slowGenerate = (ParseTools.find(args, "-g") > -1);
     int x = ParseTools.findVal(args, "-x", 50);
     int y = ParseTools.findVal(args, "-y", 50);
     int players = ParseTools.clamp(ParseTools.findVal(args, "-p", 4), 1, 4);
     int noRooms = ParseTools.findVal(args, "-r", 50);
     int seed = ParseTools.findVal(args, "-s", (int) Math.round(Math.random()*255));
-    new mazeRaceGame(showMinor, x, y, players).run(noRooms, seed);
+    new mazeRaceGame(showMinor, x, y, players).run(noRooms, seed, slowGenerate);
   }
 
   public mazeRaceGame(boolean showMinor, int x, int y, int maxPlayers){
-    gameInterface_ = new SocketGameInterface(this, new MovementActionMaster());
+    interface_ = new SocketGameInterface(this, new MovementActionMaster());
     showMinor_ = showMinor;
     if(x % 2 == 0){
       dimX_ = x+1;
@@ -42,12 +43,14 @@ public class mazeRaceGame implements Game {
     }
     maxPlayers_ = maxPlayers;
     agentNames_ = new String[maxPlayers_];
+    agentIDs_ = new int[maxPlayers];
   }
 
-  public void run(int noRooms, int seed){
-    Maze maze = new Maze(dimX_, dimY_, seed, noRooms);
+  public void run(int noRooms, int seed, boolean slowGenerate){
+    Maze maze = new Maze(dimX_, dimY_, seed, noRooms, slowGenerate);
     while(players_ < maxPlayers_){
-      gameInterface_.requestAgent();
+      Tuple<Integer, String> agentInfo = interface_.findAgent();
+      registerAgent(agentInfo);
     }
     for(int i = 0; i < players_; i++){
       maze.setPlayer();
@@ -92,27 +95,33 @@ public class mazeRaceGame implements Game {
         if(!actions.isEmpty()){
           MazeState.Sight state = new MazeState.Sight(nOp, nDist, eOp, eDist, sOp, sDist, wOp, wDist);
           MovementAction[] actionsA = actions.toArray(new MovementAction[1]);
-          Action result = gameInterface_.requestAction(i, state, actionsA);
+          Action result = interface_.requestAction(agentIDs_[i], state, actionsA);
           Cardinal movement = ((MovementAction) result).getDirection();
           if(maze.canMove(i, movement)){
             maze.move(i, movement);
           }
           else {
             maze.killPlayer(i);
+            interface_.terminateAgent(agentIDs_[i], "Illegal Move attempted.");
           }
           if(maze.hasWon(i)){
             winner = i;
+            for(int j = 0; j < players_; j++){
+              interface_.updateState(agentIDs_[j], new MazeState.Winner(agentNames_[i]));
+              interface_.terminateAgent(agentIDs_[j], "Game Over.");
+            }
           }
         }
       }
     }
     for(int i = 0; i<players_; i++){
-      gameInterface_.updateState(i, new MazeState.Winner(agentNames_[winner]));
+      interface_.updateState(agentIDs_[i], new MazeState.Winner(agentNames_[winner]));
     }
   }
 
-  @Override
-  public State registerAgent(String agent, int agentNo) {
+  public void registerAgent(Tuple<Integer, String> agentInfo) {
+    int agentNo = agentInfo.fst;
+    String agent = agentInfo.snd;
     message(agent + "wants to play.");
     while(true){
       message("Enter y to accept, n to reject.");
@@ -122,16 +131,19 @@ public class mazeRaceGame implements Game {
         if (temp.length() > 0) {
           char c = temp.charAt(0);
           if (c == 'y' || c == 'Y') {
+            agentIDs_[players_] = agentNo;
             agentNames_[players_] = agent;
             players_++;
-            return new MazeState.Dimension(dimX_, dimY_);
-          } else if (c == 'n' || c == 'N') {
-            return null;
+            interface_.updateState(agentNo, new MazeState.Dimension(dimX_, dimY_));
+            return;
+          }
+          else if (c == 'n' || c == 'N'){
+            return;
           }
         }
       } catch (Exception e) {
         error(e);
-        return null;
+        return;
       }
     }
   }
@@ -159,15 +171,16 @@ public class mazeRaceGame implements Game {
   }
 
   @Override
-  public void end() {
+  public void interfaceFailed() {
 
   }
 
   private String[] agentNames_;
+  private int[] agentIDs_;
   private int dimX_;
   private int dimY_;
   private int players_;
   private int maxPlayers_;
-  private GameInterface gameInterface_;
+  private GameInterface interface_;
   private boolean showMinor_;
 }

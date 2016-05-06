@@ -7,29 +7,42 @@ public class OnXStateMaster implements StateMaster{
 
   @Override
   public State parseString(String input){
-    Token me = parseToken(input.charAt(0));
-    OnXState res = new OnXState(me);
-    Token winner = parseToken(input.charAt(1));
-    res.setWinner(winner);
-    for(int x = 0; x < 3; x++){
-      for(int y = 0; y < 3; y++){
-        int pos = 2 + 3*y + x;
-        Token token = parseToken(input.charAt(pos));
-        res.setTokenAt(x, y, token);
+    char header = input.charAt(0);
+    switch (header){
+      case 'P':{
+        Token t = parseToken(input.charAt(1));
+        return new OnXState.Player(t);
+      }
+      case 'W':{
+        Token t = parseToken(input.charAt(1));
+        return new OnXState.Winner(t);
+      }
+      case 'G':{
+        OnXState.Grid grid = new OnXState.Grid();
+        for(int x = 0; x < 3; x++){
+          for(int y = 0; y < 3; y++){
+            int pos = 1 + 3*y + x;
+            Token token = parseToken(input.charAt(pos));
+            grid.setTokenAt(x, y, token);
+          }
+        }
+        return grid;
+      }
+      default:{
+        return null;
       }
     }
-    return res;
   }
 
   private Token parseToken(char input){
     if(input == 'O'){
-      return Token.nought();
+      return Token.NOUGHT;
     }
     else if (input == 'X'){
-      return Token.cross();
+      return Token.CROSS;
     }
     else {
-      return Token.blank();
+      return Token.BLANK;
     }
   }
 

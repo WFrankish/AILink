@@ -38,31 +38,40 @@ public class MazeBot implements Agent {
   }
 
   @Override
-  public void initialState(State debrief) {
-    MazeState.Dimension dim = (MazeState.Dimension) debrief;
-    dim_ = new Coord(dim.getX(), dim.getY());
-    frame_ = new GridFrame(dim_.x, dim_.y, Color.gray);
-    knownMaze_ = new int[dim_.x][dim_.y];
-    setGoal(dim_.x/2, dim_.y/2);
-    for(int y = 0; y < dim_.y; y++){
-      frame_.setColour(Color.black, new Coord(0, y));
-      frame_.setColour(Color.black, new Coord(dim_.x-1, y));
-      knownMaze_[0][y] = -1;
-      knownMaze_[dim_.x-1][y] = -1;
-    }
-    for(int x = 0; x < dim_.x; x++){
-      frame_.setColour(Color.black, new Coord(x, 0));
-      frame_.setColour(Color.black, new Coord(x, dim_.y-1));
-      knownMaze_[x][0] = -1;
-      knownMaze_[x][dim_.y-1] = -1;
-    }
-    frame_.makeVisible(true);
-    frame_.redraw();
+  public boolean checkGame(String ident) {
+    return ident.equals("Maze Race");
   }
 
   @Override
   public void updateState(State update) {
-    // never occurs
+    if(update instanceof MazeState.Dimension) {
+      if (dim_ == null) {
+        MazeState.Dimension dim = (MazeState.Dimension) update;
+        dim_ = new Coord(dim.getX(), dim.getY());
+        frame_ = new GridFrame(dim_.x, dim_.y, Color.gray);
+        knownMaze_ = new int[dim_.x][dim_.y];
+        setGoal(dim_.x / 2, dim_.y / 2);
+        for (int y = 0; y < dim_.y; y++) {
+          frame_.setColour(Color.black, new Coord(0, y));
+          frame_.setColour(Color.black, new Coord(dim_.x - 1, y));
+          knownMaze_[0][y] = -1;
+          knownMaze_[dim_.x - 1][y] = -1;
+        }
+        for (int x = 0; x < dim_.x; x++) {
+          frame_.setColour(Color.black, new Coord(x, 0));
+          frame_.setColour(Color.black, new Coord(x, dim_.y - 1));
+          knownMaze_[x][0] = -1;
+          knownMaze_[x][dim_.y - 1] = -1;
+        }
+        frame_.makeVisible(true);
+        frame_.redraw();
+      }
+    }
+    else{
+      MazeState.Winner winner = (MazeState.Winner) update;
+      System.out.println("The winner is " + winner.toReadable() + "!");
+
+    }
   }
 
   @Override
@@ -171,11 +180,6 @@ public class MazeBot implements Agent {
   @Override
   public void error(Object obj) {
     System.out.println("Error: " + obj);
-  }
-
-  @Override
-  public void end() {
-
   }
 
   private void setWall(int x, int y){

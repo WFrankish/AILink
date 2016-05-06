@@ -10,7 +10,7 @@ import java.util.Random;
 
 public class Maze {
 
-  public Maze(int dimX, int dimY, int seed, int noRooms){
+  public Maze(int dimX, int dimY, int seed, int noRooms, boolean slowGenerate){
     noPlayers_ = 0;
     players_ = new Coord[4];
     for(int i = 0; i<players_.length; i++){
@@ -19,6 +19,7 @@ public class Maze {
     rand_ = new RandomTool(seed);
     dim_ = new Coord(makeOdd(dimX), makeOdd(dimY));
     frame_ = new GridFrame(dim_.x, dim_.y, Color.black);
+    frame_.makeVisible(slowGenerate);
     maze_ = new boolean[dim_.x][dim_.y];
     for(int i = 0; i < dim_.x; i++){
       for(int j = 0; j < dim_.y; j++){

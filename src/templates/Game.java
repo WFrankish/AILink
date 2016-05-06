@@ -6,21 +6,14 @@ package templates;
 public interface Game {
 
   /**
-   * Given a String naming the Agent and a unique number for the agent, register the Agent and return its initial state.
-   * @param agent an arbitrary String that is the agents chosen name.
-   * @param agentNo a unique integer representing the agent, chosen by the GameInterface.
-   * @return Initial state for that agent (null if we reject the agent)
-   */
-  State registerAgent(String agent, int agentNo);
-
-  /**
    * Give the String that identifies your Game. Mostly for human use, so uniqueness is helpful but not mandatory.
    * Should return the same value every time.
    * @return your identity as String
    */
   String identity();
 
-  /** Transmit important information to human game master
+  /**
+   * Transmit important information to human game master
    * Do not ignore.
    * @param obj information as any Object (therefore it has a toString method)
    */
@@ -43,7 +36,6 @@ public interface Game {
 
   /**
    * Called when the GameInterface has died.
-   * Does not have to end your Game.
    */
-  void end();
+  void interfaceFailed();
 }

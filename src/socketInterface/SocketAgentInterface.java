@@ -25,6 +25,7 @@ public class SocketAgentInterface implements AgentInterface {
     ended = false;
   }
 
+  @Override
   public void run(){
     try{
       // Create local socket to communicate actions.
@@ -41,21 +42,28 @@ public class SocketAgentInterface implements AgentInterface {
       // Receive the initial state information for the game.
       String header = inOut.readLine();
       if(header.equals("ACCEPT")) {
-        String debrief = inOut.readLine();
-        agent_.debug(false, "Received debrief: " + debrief);
-        registrationSocket.close();
-        agent_.initialState(stateMaster_.parseString(debrief));
+        String gameName = inOut.readLine();
+        if(agent_.checkGame(gameName)) {
+          agent_.debug(false, "Registered with interface.");
+          inOut.writeLine("ACCEPT");
+          registrationSocket.close();
+        }
+        else{
+          inOut.writeLine("CLOSE");
+          registrationSocket.close();
+          return;
+        }
       }
       else{
         registrationSocket.close();
-        agent_.error("We were rejected by the game.");
+        agent_.error("Registration process failed.");
         end();
         return;
       }
       // Play the game.
       Socket socket = serverSocket.accept();
       inOut = new InOut(socket);
-      while(!socket.isClosed()){
+      while(!ended && !socket.isClosed()){
         header = inOut.readLine();
         if(header.equals("REQUEST")) {
           // Communication is a request for an action, so we will be passed a state and a list of actions
@@ -73,8 +81,14 @@ public class SocketAgentInterface implements AgentInterface {
           agent_.debug(false, "Received State: " + state.toReadable());
           agent_.updateState(state);
         }
+        else if(header.equals("CLOSE")){
+          String msg = inOut.readLine();
+          agent_.error("Kicked with message from game - " + msg);
+          end();
+        }
         else{
           // Communication is either to close, or something has gone wrong so we close anyway.
+          agent_.error("Bad header - " + header);
           inOut.close();
           end();
         }
@@ -88,11 +102,8 @@ public class SocketAgentInterface implements AgentInterface {
   }
 
   public void end(){
-    if(!ended){
-      agent_.debug(true, "Interface has ended.");
-      ended = true;
-      agent_.end();
-    }
+    agent_.debug(true, "Interface has ended.");
+    ended = true;
   }
 
   private Agent agent_;
@@ -101,4 +112,6 @@ public class SocketAgentInterface implements AgentInterface {
   private StateMaster stateMaster_;
   private ActionMaster actionMaster_;
   private boolean ended;
+
+
 }

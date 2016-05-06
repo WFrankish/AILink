@@ -2,123 +2,166 @@ package examples.noughtsAndCrosses;
 
 import templates.State;
 
-public class OnXState implements State {
+public class OnXState{
 
-  public OnXState(Token me) {
-    me_ = me;
-    winner_ = Token.blank();
-    for(int x = 0; x < 3; x++){
-      for(int y = 0; y < 3; y++){
-        grid_[y][x] = Token.blank();
-      }
-    }
-  }
+  public static class Grid implements State{
 
-  public Token getMe(){
-    return me_;
-  }
-
-  public Token getWinner(){
-    return winner_;
-  }
-
-  public void setWinner(Token winner){
-    winner_ = winner;
-  }
-
-  public Token getTokenAt(int x, int y){
-    if(x < 0 || x  >= 3){
-      throw new IllegalArgumentException("x must be between 0 and 2");
-    }
-    if(y < 0 || y  >= 3){
-      throw new IllegalArgumentException("y must be between 0 and 2");
-    }
-    return grid_[y][x];
-  }
-
-  public void setTokenAt(int x, int y, Token token){
-    if(x < 0 || x  >= 3){
-      throw new IllegalArgumentException("x must be between 0 and 2");
-    }
-    if(y < 0 || y  >= 3){
-      throw new IllegalArgumentException("y must be between 0 and 2");
-    }
-    grid_[y][x] = token;
-  }
-
-  private Token me_;
-
-  private Token winner_;
-
-  private Token[][] grid_ = new Token[3][3];
-
-  public String toString(){
-    StringBuilder builder = new StringBuilder();
-    if(me_.isNought()){
-      builder.append("O");
-    }
-    else if(me_.isCross()){
-      builder.append("X");
-    }
-    else{
-      builder.append("?");
-    }
-    if(winner_.isNought()){
-      builder.append("O");
-    }
-    else if(winner_.isCross()){
-      builder.append("X");
-    }
-    else{
-      builder.append("?");
-    }
-    for(Token[] line : grid_){
-      for(Token token : line){
-        if(token.isNought()){
-          builder.append("O");
-        }
-        else if(token.isCross()){
-          builder.append("X");
-        }
-        else{
-          builder.append("?");
+    public Grid(){
+      grid_ = new Token[3][3];
+      for(int x = 0; x<3; x++){
+        for(int y = 0; y<3; y++){
+          grid_[x][y] = Token.BLANK;
         }
       }
     }
-    return builder.toString();
+
+    public Token getTokenAt(int x, int y){
+      return grid_[x][y];
+    }
+
+    public void setTokenAt(int x, int y, Token token){
+      grid_[x][y] = token;
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder result = new StringBuilder("G");
+      for(int y = 0; y<3; y++){
+        for(int x = 0; x<3; x++){
+          switch (grid_[x][y]){
+            case CROSS:{
+              result.append('X');
+              break;
+            }
+            case NOUGHT:{
+              result.append('O');
+              break;
+            }
+            default:{
+              result.append('?');
+            }
+          }
+        }
+      }
+      return result.toString();
+    }
+
+    @Override
+    public String toReadable() {
+      StringBuilder result = new StringBuilder();
+      for(int y = 0; y<3; y++){
+        result.append("[ ");
+        for(int x = 0; x<3; x++){
+          switch (grid_[x][y]){
+            case CROSS:{
+              result.append("X ");
+              break;
+            }
+            case NOUGHT:{
+              result.append("O ");
+              break;
+            }
+            default:{
+              result.append("? ");
+            }
+          }
+        }
+        result.append("]\n");
+      }
+      return result.toString();
+    }
+
+    private Token[][] grid_;
+
   }
 
-  @Override
-  public String toReadable(){
-    StringBuilder builder = new StringBuilder("You are: ");
-    if(me_.isNought()){
-      builder.append("O\n");
+  public static class Player implements State{
+
+    public Player(Token them){
+      me_ = them;
     }
-    else if(me_.isCross()){
-      builder.append("X\n");
+
+    public Token getMe(){
+      return me_;
     }
-    else{
-      builder.append("?\n");
-    }
-    builder.append("---------\n");
-    for(Token[] line : grid_){
-      builder.append("| ");
-      for(Token token : line){
-        if(token.isNought()){
-          builder.append("O");
+
+    @Override
+    public String toString() {
+      switch (me_){
+        case NOUGHT:{
+          return "PO";
         }
-        else if(token.isCross()){
-          builder.append("X");
+        case CROSS:{
+          return "PX";
         }
-        else{
-          builder.append("?");
+        default:{
+          return "P?";
         }
-        builder.append(" ");
       }
-      builder.append("|\n");
     }
-    builder.append("---------");
-    return builder.toString();
+
+    @Override
+    public String toReadable() {
+      switch (me_){
+        case NOUGHT:{
+          return "Nought";
+        }
+        case CROSS:{
+          return "Cross";
+        }
+        default:{
+          return "Blank";
+        }
+      }
+    }
+
+    private Token me_;
+
   }
+
+  public static class Winner implements State{
+
+    public Winner(Token them){
+      winner_ = them;
+    }
+
+    public Token getWinner(){
+      return winner_;
+    }
+
+    @Override
+    public String toString() {
+      switch (winner_){
+        case NOUGHT:{
+          return "WO";
+        }
+        case CROSS:{
+          return "WX";
+        }
+        default:{
+          return "W?";
+        }
+      }
+    }
+
+    @Override
+    public String toReadable() {
+      switch (winner_){
+        case NOUGHT:{
+          return "Nought";
+        }
+        case CROSS:{
+          return "Cross";
+        }
+        default:{
+          return "Blank";
+        }
+      }
+    }
+
+    private Token winner_;
+
+  }
+
 
 }
