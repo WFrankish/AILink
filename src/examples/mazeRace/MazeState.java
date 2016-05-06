@@ -1,6 +1,6 @@
 package examples.mazeRace;
 
-import templates.State;
+import interfaces.State;
 import common.Coord;
 
 public class MazeState {

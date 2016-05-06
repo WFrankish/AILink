@@ -1,6 +1,6 @@
 package socketInterface;
 
-import templates.*;
+import interfaces.*;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -10,13 +10,21 @@ import java.net.Socket;
 public class SocketAgentInterface implements AgentInterface {
   /**
    * Constructor
-   * @param url the url for the socket we will register with
-   * @param port the port for the socket we will register with
    * @param agent the agent we are communicating for
    * @param stateMaster information on how to parse states for the problem we are communicating for
    * @param actionMaster information on how to parse actions for the problem we are communicating for
    */
-  public SocketAgentInterface(String url, int port, Agent agent, StateMaster stateMaster, ActionMaster actionMaster){
+  public SocketAgentInterface(Agent agent, StateMaster stateMaster, ActionMaster actionMaster){
+    String url = "";
+    int port = 0;
+    try {
+      url = "localhost";
+      System.out.println("Enter port number of host:");
+      BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+      port = Integer.parseInt(stdIn.readLine());
+    } catch (Exception e) {
+      agent_.error(e);
+    }
     url_ = url;
     signUpPort_ = port;
     agent_ = agent;
@@ -38,7 +46,7 @@ public class SocketAgentInterface implements AgentInterface {
       agent_.debug(true, "Signing up for game.");
       inOut.writeLine(agent_.identity());
       inOut.writeLine(address);
-      inOut.writeLine(port+"");
+      inOut.writeLine(port + "");
       // Receive the initial state information for the game.
       String header = inOut.readLine();
       if(header.equals("ACCEPT")) {

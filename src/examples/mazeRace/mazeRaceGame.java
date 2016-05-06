@@ -4,9 +4,9 @@ import common.Cardinal;
 import common.Coord;
 import common.Tuple;
 import socketInterface.SocketGameInterface;
-import templates.Action;
-import templates.Game;
-import templates.GameInterface;
+import interfaces.Action;
+import interfaces.Game;
+import interfaces.GameInterface;
 import tools.ParseTools;
 
 import java.io.BufferedReader;
@@ -17,19 +17,18 @@ import java.util.ArrayList;
 public class mazeRaceGame implements Game {
 
   public static void main(String[] args){
-    boolean showMinor = (ParseTools.find(args, "-d") > -1);
-    boolean slowGenerate = (ParseTools.find(args, "-g") > -1);
-    int x = ParseTools.findVal(args, "-x", 50);
-    int y = ParseTools.findVal(args, "-y", 50);
-    int players = ParseTools.clamp(ParseTools.findVal(args, "-p", 4), 1, 4);
-    int noRooms = ParseTools.findVal(args, "-r", 50);
-    int seed = ParseTools.findVal(args, "-s", (int) Math.round(Math.random()*255));
-    new mazeRaceGame(showMinor, x, y, players).run(noRooms, seed, slowGenerate);
+    new mazeRaceGame(args).run();
   }
 
-  public mazeRaceGame(boolean showMinor, int x, int y, int maxPlayers){
+  public mazeRaceGame(String[] args){
+    showMinor_ = (ParseTools.find(args, "-dm") > -1);
+    showDebug_ = showMinor_ || (ParseTools.find(args, "-d") > -1);
+    slowGenerate_ = (ParseTools.find(args, "-g") > -1);
+    noRooms_ = ParseTools.findVal(args, "-r", 50);
+    seed_ = ParseTools.findVal(args, "-s", (int) Math.round(Math.random()*255));
     interface_ = new SocketGameInterface(this, new MovementActionMaster());
-    showMinor_ = showMinor;
+    int x = ParseTools.findVal(args, "-x", 50);
+    int y = ParseTools.findVal(args, "-y", 50);
     if(x % 2 == 0){
       dimX_ = x+1;
     } else {
@@ -41,25 +40,42 @@ public class mazeRaceGame implements Game {
     } else {
       dimY_ = y;
     }
-    maxPlayers_ = maxPlayers;
+    maxPlayers_ = ParseTools.clamp(ParseTools.findVal(args, "-p", 4), 1, 4);
     agentNames_ = new String[maxPlayers_];
-    agentIDs_ = new int[maxPlayers];
+    agentIDs_ = new int[maxPlayers_];
   }
 
-  public void run(int noRooms, int seed, boolean slowGenerate){
-    Maze maze = new Maze(dimX_, dimY_, seed, noRooms, slowGenerate);
-    while(players_ < maxPlayers_){
+  public void run(){
+    Maze maze = new Maze(dimX_, dimY_, seed_, noRooms_, slowGenerate_);
+    int noPlayers = 0;
+    debug(true, "Seeking " + maxPlayers_ + " players.");
+    while(noPlayers < maxPlayers_){
       Tuple<Integer, String> agentInfo = interface_.findAgent();
-      registerAgent(agentInfo);
+      int agentNo = agentInfo.fst;
+      String agent = agentInfo.snd;
+      if(acceptAgent(agent)) {
+        maze.setPlayer();
+        agentIDs_[noPlayers] = agentNo;
+        agentNames_[noPlayers] = agent;
+        noPlayers++;
+        debug(true, "Added agent " + agent);
+        debug(false, "Now the number of agents is: " + noPlayers);
+      } else {
+        debug(true, "Rejecting agent " + agent);
+        interface_.terminateAgent(agentNo, "Rejected.");
+      }
     }
-    for(int i = 0; i < players_; i++){
-      maze.setPlayer();
+    debug(true, "Sending initial state.");
+    for(int agentID : agentIDs_){
+      interface_.updateState(agentID, new MazeState.Dimension(dimX_, dimY_));
     }
+    debug(true, "Beginning game.");
     int winner = -1;
     while(winner < 0){
-      for(int i = 0; i < players_; i++){
+      for(int player = 0; player < noPlayers; player++){
+        debug(false, "Seeking actions for player " + player);
         ArrayList<MovementAction> actions = new ArrayList<MovementAction>();
-        Coord loc = maze.playerLoc(i);
+        Coord loc = maze.playerLoc(player);
         int nDist = 1;
         while(!maze.wallAt(loc.x, loc.y-nDist) && !maze.playerAt(loc.x, loc.y-nDist)){
           nDist++;
@@ -93,35 +109,34 @@ public class mazeRaceGame implements Game {
           actions.add(MovementAction.West);
         }
         if(!actions.isEmpty()){
+          debug(true, "Next to move is player " + player);
           MazeState.Sight state = new MazeState.Sight(nOp, nDist, eOp, eDist, sOp, sDist, wOp, wDist);
           MovementAction[] actionsA = actions.toArray(new MovementAction[1]);
-          Action result = interface_.requestAction(agentIDs_[i], state, actionsA);
+          Action result = interface_.requestAction(agentIDs_[player], state, actionsA);
           Cardinal movement = ((MovementAction) result).getDirection();
-          if(maze.canMove(i, movement)){
-            maze.move(i, movement);
+          if(maze.canMove(player, movement)){
+            maze.move(player, movement);
           }
           else {
-            maze.killPlayer(i);
-            interface_.terminateAgent(agentIDs_[i], "Illegal Move attempted.");
+            maze.killPlayer(player);
+            interface_.terminateAgent(agentIDs_[player], "Illegal Move attempted.");
           }
-          if(maze.hasWon(i)){
-            winner = i;
-            for(int j = 0; j < players_; j++){
-              interface_.updateState(agentIDs_[j], new MazeState.Winner(agentNames_[i]));
+          if(maze.hasWon(player)){
+            winner = player;
+            for(int j = 0; j < noPlayers; j++){
+              interface_.updateState(agentIDs_[j], new MazeState.Winner(agentNames_[player]));
               interface_.terminateAgent(agentIDs_[j], "Game Over.");
             }
           }
         }
       }
     }
-    for(int i = 0; i<players_; i++){
+    for(int i = 0; i<noPlayers; i++){
       interface_.updateState(agentIDs_[i], new MazeState.Winner(agentNames_[winner]));
     }
   }
 
-  public void registerAgent(Tuple<Integer, String> agentInfo) {
-    int agentNo = agentInfo.fst;
-    String agent = agentInfo.snd;
+  private boolean acceptAgent(String agent) {
     message(agent + "wants to play.");
     while(true){
       message("Enter y to accept, n to reject.");
@@ -131,19 +146,15 @@ public class mazeRaceGame implements Game {
         if (temp.length() > 0) {
           char c = temp.charAt(0);
           if (c == 'y' || c == 'Y') {
-            agentIDs_[players_] = agentNo;
-            agentNames_[players_] = agent;
-            players_++;
-            interface_.updateState(agentNo, new MazeState.Dimension(dimX_, dimY_));
-            return;
+            return true;
           }
           else if (c == 'n' || c == 'N'){
-            return;
+            return false;
           }
         }
       } catch (Exception e) {
         error(e);
-        return;
+        return false;
       }
     }
   }
@@ -160,7 +171,7 @@ public class mazeRaceGame implements Game {
 
   @Override
   public void debug(boolean isMajor, Object obj) {
-    if(isMajor || showMinor_){
+    if(showDebug_ && (isMajor || showMinor_)){
       System.out.println("Debug: "+obj);
     }
   }
@@ -170,17 +181,15 @@ public class mazeRaceGame implements Game {
     System.out.println("Error: "+obj);
   }
 
-  @Override
-  public void interfaceFailed() {
-
-  }
-
   private String[] agentNames_;
   private int[] agentIDs_;
   private int dimX_;
   private int dimY_;
-  private int players_;
   private int maxPlayers_;
   private GameInterface interface_;
+  private boolean showDebug_;
   private boolean showMinor_;
+  private int seed_;
+  private int noRooms_;
+  private boolean slowGenerate_;
 }

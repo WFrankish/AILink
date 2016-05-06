@@ -1,4 +1,4 @@
-package templates;
+package interfaces;
 
 /**
  * Visible State for a Game. This is not necessarily all of the information held about the state by the game,

@@ -1,4 +1,4 @@
-package templates;
+package interfaces;
 
 /**
  * A Game for an AILink program.
@@ -34,8 +34,4 @@ public interface Game {
    */
   void error(Object obj);
 
-  /**
-   * Called when the GameInterface has died.
-   */
-  void interfaceFailed();
 }

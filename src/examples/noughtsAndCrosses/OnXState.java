@@ -1,6 +1,6 @@
 package examples.noughtsAndCrosses;
 
-import templates.State;
+import interfaces.State;
 
 public class OnXState{
 

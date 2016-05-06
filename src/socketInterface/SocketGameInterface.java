@@ -1,7 +1,7 @@
 package socketInterface;
 
 import common.Tuple;
-import templates.*;
+import interfaces.*;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -27,7 +27,6 @@ public class SocketGameInterface implements GameInterface {
     }
     catch (IOException e){
       game_.error(e.toString());
-      game_.interfaceFailed();
     }
   }
 

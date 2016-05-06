@@ -1,7 +1,7 @@
 package examples.mazeRace;
 
-import templates.State;
-import templates.StateMaster;
+import interfaces.State;
+import interfaces.StateMaster;
 
 public class MazeStateMaster implements StateMaster {
 

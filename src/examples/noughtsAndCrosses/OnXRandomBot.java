@@ -1,34 +1,22 @@
 package examples.noughtsAndCrosses;
 
 import socketInterface.SocketAgentInterface;
-import templates.Action;
-import templates.Agent;
-import templates.AgentInterface;
-import templates.State;
+import interfaces.Action;
+import interfaces.Agent;
+import interfaces.AgentInterface;
+import interfaces.State;
 import tools.ParseTools;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 
 public class OnXRandomBot implements Agent{
 
   public static void main(String[] args) {
     boolean showMinor = (args.length > 0 && ParseTools.parseTruth(args[0]));
     OnXRandomBot instance = new OnXRandomBot(showMinor);
-    try {
-      String url = "localhost";
-      System.out.println("Enter port number of host:");
-      BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
-      int port = Integer.parseInt(stdIn.readLine());
-      AgentInterface connection = new SocketAgentInterface(url,
-          port,
-          instance,
-          new OnXStateMaster(),
-          new OnXActionMaster());
-      connection.run();
-    } catch (Exception e) {
-      instance.error(e);
-    }
+    AgentInterface connection = new SocketAgentInterface(
+        instance,
+        new OnXStateMaster(),
+        new OnXActionMaster());
+    connection.run();
   }
 
   public OnXRandomBot(boolean showMinor){

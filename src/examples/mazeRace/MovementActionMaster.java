@@ -1,8 +1,8 @@
 package examples.mazeRace;
 
 
-import templates.Action;
-import templates.ActionMaster;
+import interfaces.Action;
+import interfaces.ActionMaster;
 
 import java.util.ArrayList;
 

@@ -1,7 +1,7 @@
 package examples.noughtsAndCrosses;
 
-import templates.State;
-import templates.StateMaster;
+import interfaces.State;
+import interfaces.StateMaster;
 
 public class OnXStateMaster implements StateMaster{
 

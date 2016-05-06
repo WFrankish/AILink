@@ -2,9 +2,9 @@ package examples.noughtsAndCrosses;
 
 import common.Tuple;
 import socketInterface.SocketGameInterface;
-import templates.Action;
-import templates.Game;
-import templates.GameInterface;
+import interfaces.Action;
+import interfaces.Game;
+import interfaces.GameInterface;
 import tools.ParseTools;
 
 import java.io.BufferedReader;
@@ -14,136 +14,16 @@ import java.util.ArrayList;
 public class noughtsAndCrossesGame implements Game {
 
   public static void main(String[] args){
-    boolean showMinor = ParseTools.find(args, "-d") > -1;
     while(true) {
-      new noughtsAndCrossesGame(showMinor).run();
+      new noughtsAndCrossesGame(args).run();
     }
   }
 
-  public  noughtsAndCrossesGame(boolean showMinor){
+  public  noughtsAndCrossesGame(String[] args){
     interface_ = new SocketGameInterface(this, new OnXActionMaster());
-    showMinor_ = showMinor;
+    showMinor_ = (ParseTools.find(args, "-dm") > -1);
+    showDebug_ = showMinor_ || (ParseTools.find(args, "-d") > -1);
     state_ = new OnXState.Grid();
-  }
-
-  public void run(){
-    while(players_ < 2){
-      Tuple<Integer, String> agentInfo = interface_.findAgent();
-      registerAgent(agentInfo);
-    }
-    boolean done = false;
-    boolean crossTurn = true;
-    Action[] actions = getActions();
-    while(!done && actions.length>0){
-      if(crossTurn){
-        crossTurn = false;
-        Action temp = interface_.requestAction(cross_, state_, actions);
-        OnXAction action = (OnXAction) temp;
-        if(!validAction(action)){
-          done = true;
-          setWinner(Token.NOUGHT);
-        }
-        else{
-          done = doAction(action, Token.CROSS);
-        }
-       }
-      else{
-        crossTurn = true;
-        Action temp = interface_.requestAction(nought_, state_, getActions());
-        OnXAction action = (OnXAction) temp;
-        if(!validAction(action)){
-          done = true;
-          setWinner(Token.CROSS);
-        }
-        else {
-          done = doAction(action, Token.NOUGHT);
-        }
-      }
-      actions = getActions();
-    }
-    interface_.terminateAgent(cross_, "Game Over.");
-    interface_.terminateAgent(nought_, "Game Over.");
-    interface_.end();
-  }
-
-  public void registerAgent(Tuple<Integer, String> agentInfo) {
-    int agentNo = agentInfo.fst;
-    String agent = agentInfo.snd;
-    message(agent + " wants to play.");
-    if(players_ == 0) {
-      message("Enter X for cross and O for nought, enter nothing to reject");
-      try {
-        BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
-        String temp = stdIn.readLine();
-        if (temp.length() == 0) {
-          interface_.terminateAgent(agentNo, "Rejected.");
-        } else {
-          char c = temp.charAt(0);
-          if (c == 'X' || c == 'x') {
-            cross_ = agentNo;
-            players_++;
-            interface_.updateState(agentNo, new OnXState.Player(Token.CROSS));
-          } else if (c == 'O' || c == 'o' || c == '0') {
-            nought_ = agentNo;
-            noughtSet_ = true;
-            players_++;
-            interface_.updateState(agentNo, new OnXState.Player(Token.NOUGHT));
-          } else {
-            interface_.terminateAgent(agentNo, "Rejected.");
-          }
-        }
-      } catch (Exception e) {
-        error(e);
-        interface_.terminateAgent(agentNo, "Issue at registration phase.");
-      }
-    }
-    else{
-      if(noughtSet_){
-        message("Enter X for cross, enter nothing to reject");
-        try {
-          BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
-          String temp = stdIn.readLine();
-          if (temp.length() == 0) {
-            interface_.terminateAgent(agentNo, "Rejected.");
-          } else {
-            char c = temp.charAt(0);
-            if (c == 'X' || c == 'x') {
-              cross_ = agentNo;
-              players_++;
-              interface_.updateState(agentNo, new OnXState.Player(Token.CROSS));
-            } else {
-              interface_.terminateAgent(agentNo, "Rejected.");
-            }
-          }
-        } catch (Exception e) {
-          error(e);
-          interface_.terminateAgent(agentNo, "Issue at registration phase.");
-        }
-      }
-      else{
-        message("Enter O for nought, enter nothing to reject");
-        try {
-          BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
-          String temp = stdIn.readLine();
-          if (temp.length() == 0) {
-            interface_.terminateAgent(agentNo, "Rejected.");
-          } else {
-            char c = temp.charAt(0);
-            if (c == 'O' || c == 'o' || c == '0') {
-              nought_ = agentNo;
-              noughtSet_ = true;
-              players_++;
-              interface_.updateState(agentNo, new OnXState.Player(Token.NOUGHT));
-            } else {
-              interface_.terminateAgent(agentNo, "Rejected.");
-            }
-          }
-        } catch (Exception e) {
-          error(e);
-          interface_.terminateAgent(agentNo, "Issue at registration phase.");
-        }
-      }
-    }
   }
 
   @Override
@@ -159,7 +39,7 @@ public class noughtsAndCrossesGame implements Game {
 
   @Override
   public void debug(boolean isMajor, Object obj) {
-    if(isMajor || showMinor_) {
+    if( showDebug_ && (isMajor || showMinor_)) {
       String message = "Debug for " + identity() + ": " + obj;
       System.out.println(message);
     }
@@ -171,10 +51,132 @@ public class noughtsAndCrossesGame implements Game {
     System.out.println(message);
   }
 
-  @Override
-  public void interfaceFailed() {
-
+  private void run(){
+    int noPlayers = 0;
+    noughtSet_ = false;
+    debug(true, "Seeking two players.");
+    while(noPlayers < 2){
+      Tuple<Integer, String> agentInfo = interface_.findAgent();
+      int agentNo = agentInfo.fst;
+      String agent = agentInfo.snd;
+      Token token = acceptAgent(agent, noPlayers);
+      if(token != Token.BLANK){
+        if(token == Token.CROSS){
+          cross_ = agentNo;
+        } else {
+          noughtSet_ = true;
+          nought_ = agentNo;
+        }
+        noPlayers++;
+        debug(true, "Added agent " + agent);
+        debug(false, "Now the number of agents is: " + noPlayers);
+        interface_.updateState(agentNo, new OnXState.Player(token));
+      } else {
+        debug(true, "Rejecting agent " + agent);
+        interface_.terminateAgent(agentNo, "Rejected.");
+      }
+    }
+    boolean gameOver = false;
+    boolean crossTurn = true;
+    Action[] actions = getActions();
+    while(!gameOver && actions.length>0){
+      if(crossTurn){
+        crossTurn = false;
+        Action temp = interface_.requestAction(cross_, state_, actions);
+        OnXAction action = (OnXAction) temp;
+        if(!validAction(action)){
+          gameOver = true;
+          setWinner(Token.NOUGHT);
+        }
+        else{
+          gameOver = doAction(action, Token.CROSS);
+        }
+      }
+      else{
+        crossTurn = true;
+        Action temp = interface_.requestAction(nought_, state_, getActions());
+        OnXAction action = (OnXAction) temp;
+        if(!validAction(action)){
+          gameOver = true;
+          setWinner(Token.CROSS);
+        }
+        else {
+          gameOver = doAction(action, Token.NOUGHT);
+        }
+      }
+      actions = getActions();
+    }
+    interface_.end();
   }
+
+  private Token acceptAgent(String agent, int players) {
+    message(agent + " wants to play.");
+    if(players == 0) {
+      message("Enter X for cross and O for nought, enter nothing to reject");
+      try {
+        BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+        String temp = stdIn.readLine();
+        if (temp.length() == 0) {
+          return Token.BLANK;
+        } else {
+          char c = temp.charAt(0);
+          if (c == 'X' || c == 'x') {
+            return Token.CROSS;
+          } else if (c == 'O' || c == 'o' || c == '0') {
+            return Token.NOUGHT;
+          } else {
+            return Token.BLANK;
+          }
+        }
+      } catch (Exception e) {
+        error(e);
+        return Token.BLANK;
+      }
+    }
+    else{
+      if(noughtSet_){
+        message("Enter X for cross, enter nothing to reject");
+        try {
+          BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+          String temp = stdIn.readLine();
+          if (temp.length() == 0) {
+            return Token.BLANK;
+          } else {
+            char c = temp.charAt(0);
+            if (c == 'X' || c == 'x') {
+              return Token.CROSS;
+            } else {
+              return Token.BLANK;
+            }
+          }
+        } catch (Exception e) {
+          error(e);
+          return Token.BLANK;
+        }
+      }
+      else{
+        message("Enter O for nought, enter nothing to reject");
+        try {
+          BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+          String temp = stdIn.readLine();
+          if (temp.length() == 0) {
+            return Token.BLANK;
+          } else {
+            char c = temp.charAt(0);
+            if (c == 'O' || c == 'o' || c == '0') {
+              return Token.NOUGHT;
+            } else {
+              return Token.BLANK;
+            }
+          }
+        } catch (Exception e) {
+          error(e);
+          return Token.BLANK;
+        }
+      }
+    }
+  }
+
 
   private Action[] getActions(){
     ArrayList<Action> actions = new ArrayList<Action>();
@@ -258,9 +260,9 @@ public class noughtsAndCrossesGame implements Game {
 
   private int nought_;
   private int cross_;
-  private boolean noughtSet_ = false;
+  private boolean noughtSet_;
   private OnXState.Grid state_ = new OnXState.Grid();
   private GameInterface interface_;
-  private int players_ = 0;
+  private boolean showDebug_;
   private boolean showMinor_;
 }

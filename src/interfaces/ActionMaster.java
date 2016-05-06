@@ -1,4 +1,4 @@
-package templates;
+package interfaces;
 
 /**
  * A definition for all actions that may become available as part of a Game.

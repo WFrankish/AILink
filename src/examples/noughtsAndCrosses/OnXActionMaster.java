@@ -1,7 +1,7 @@
 package examples.noughtsAndCrosses;
 
-import templates.Action;
-import templates.ActionMaster;
+import interfaces.Action;
+import interfaces.ActionMaster;
 
 public class OnXActionMaster implements ActionMaster {
 

@@ -1,6 +1,6 @@
 package examples.noughtsAndCrosses;
 
-import templates.Action;
+import interfaces.Action;
 
 public class OnXAction implements Action {
 

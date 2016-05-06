@@ -1,10 +1,10 @@
 package debug;
 
 import socketInterface.SocketAgentInterface;
-import templates.Action;
-import templates.Agent;
-import templates.AgentInterface;
-import templates.State;
+import interfaces.Action;
+import interfaces.Agent;
+import interfaces.AgentInterface;
+import interfaces.State;
 import tools.ParseTools;
 
 import java.io.BufferedReader;
@@ -33,20 +33,11 @@ public class EchoBot implements Agent {
     boolean showMinor = (args.length > 0 && ParseTools.parseTruth(args[0]));
     while(true) {
       EchoBot instance = new EchoBot(showMinor);
-      try {
-        String url = "localhost";
-        System.out.println("Enter port number of host:");
-        BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
-        int port = Integer.parseInt(stdIn.readLine());
-        AgentInterface connection = new SocketAgentInterface(url,
-            port,
-            instance,
-            new Echo.EchoStateMaster(),
-            new Echo.EchoActionMaster());
-        connection.run();
-      } catch (Exception e) {
-        instance.error(e);
-      }
+      AgentInterface connection = new SocketAgentInterface(
+        instance,
+        new Echo.EchoStateMaster(),
+        new Echo.EchoActionMaster());
+      connection.run();
     }
   }
 

@@ -1,31 +1,20 @@
 package examples.noughtsAndCrosses;
 
 import socketInterface.SocketAgentInterface;
-import templates.*;
+import interfaces.*;
 import tools.ParseTools;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 public class OnXDynamicBot implements Agent{
   public static void main(String[] args) {
     boolean showMinor = ParseTools.find(args, "-d") > -1;
     OnXDynamicBot instance = new OnXDynamicBot(showMinor);
-    try {
-      String url = "localhost";
-      System.out.println("Enter port number of host:");
-      BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
-      int port = Integer.parseInt(stdIn.readLine());
-      AgentInterface connection = new SocketAgentInterface(url,
-          port,
-          instance,
-          new OnXStateMaster(),
-          new OnXActionMaster());
-      connection.run();
-    } catch (Exception e) {
-      instance.error(e);
-    }
+    AgentInterface connection = new SocketAgentInterface(
+        instance,
+        new OnXStateMaster(),
+        new OnXActionMaster());
+    connection.run();
   }
 
   public OnXDynamicBot(boolean showMinor){

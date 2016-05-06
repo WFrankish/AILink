@@ -1,4 +1,4 @@
-package templates;
+package interfaces;
 
 /**
  * An Agent for an AILink Program
@@ -8,7 +8,7 @@ public interface Agent {
   /**
    * Check with the Agent (or the Agent's human master) whether it wants to play this game.
    * @param ident The name of the game;
-   * @return
+   * @return whether the agent accepts
    */
   boolean checkGame(String ident);
 

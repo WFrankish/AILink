@@ -1,4 +1,4 @@
-package templates;
+package interfaces;
 
 /**
  * An Action in the Game.

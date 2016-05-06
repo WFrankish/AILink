@@ -1,7 +1,7 @@
 package examples.mazeRace;
 
 import common.Cardinal;
-import templates.Action;
+import interfaces.Action;
 
 public class MovementAction implements Action {
 
