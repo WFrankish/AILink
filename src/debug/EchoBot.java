@@ -75,7 +75,7 @@ public class EchoBot implements Agent {
   }
 
   @Override
-  public void updateState(State update) {
+  public void perceiveState(State update) {
     System.out.println("Message Received: " + update.toReadable());
   }
 

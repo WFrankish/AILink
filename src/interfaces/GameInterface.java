@@ -27,7 +27,7 @@ public interface GameInterface {
    * @param agentID the agent to update
    * @param state the state the agent can see
    */
-  void updateState(int agentID, State state);
+  void sendState(int agentID, State state);
 
   /**
    * terminate communication with an agent

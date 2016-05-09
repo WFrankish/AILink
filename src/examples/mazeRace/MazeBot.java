@@ -32,7 +32,7 @@ public class MazeBot implements Agent {
   }
 
   @Override
-  public void updateState(State update) {
+  public void perceiveState(State update) {
     if(update instanceof MazeState.Dimension) {
       if (dim_ == null) {
         MazeState.Dimension dim = (MazeState.Dimension) update;

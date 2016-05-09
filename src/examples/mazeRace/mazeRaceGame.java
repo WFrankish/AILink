@@ -67,7 +67,7 @@ public class mazeRaceGame implements Game {
     }
     debug(true, "Sending initial state.");
     for(int agentID : agentIDs_){
-      interface_.updateState(agentID, new MazeState.Dimension(dimX_, dimY_));
+      interface_.sendState(agentID, new MazeState.Dimension(dimX_, dimY_));
     }
     debug(true, "Beginning game.");
     int winner = -1;
@@ -124,7 +124,7 @@ public class mazeRaceGame implements Game {
           if(maze.hasWon(player)){
             winner = player;
             for(int j = 0; j < noPlayers; j++){
-              interface_.updateState(agentIDs_[j], new MazeState.Winner(agentNames_[player]));
+              interface_.sendState(agentIDs_[j], new MazeState.Winner(agentNames_[player]));
               interface_.terminateAgent(agentIDs_[j], "Game Over.");
             }
           }
@@ -132,7 +132,7 @@ public class mazeRaceGame implements Game {
       }
     }
     for(int i = 0; i<noPlayers; i++){
-      interface_.updateState(agentIDs_[i], new MazeState.Winner(agentNames_[winner]));
+      interface_.sendState(agentIDs_[i], new MazeState.Winner(agentNames_[winner]));
     }
   }
 

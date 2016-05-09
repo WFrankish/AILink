@@ -5,6 +5,7 @@ import interfaces.Action;
 public class OnXAction implements Action {
 
   public OnXAction(int x, int y){
+    // grid of only 3*3
     if(x < 0 || x  >= 3){
       throw new IllegalArgumentException("x must be between 0 and 2");
     }

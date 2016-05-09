@@ -43,6 +43,7 @@ public class OnXDynamicBot implements Agent{
     System.out.println(builder.toString());
     // decide
     if(node_==null){
+      // If we were cross, node_ would already be instantiated
       // We are nought, find where crosses first action was and construct the tree.
       node_ = new Node();
       OnXAction crossAction = new OnXAction(0,0);
@@ -105,7 +106,7 @@ public class OnXDynamicBot implements Agent{
 
 
   @Override
-  public void updateState(State update) {
+  public void perceiveState(State update) {
     if(update instanceof OnXState.Player){
       OnXState.Player state = (OnXState.Player) update;
       me_ = state.getMe();

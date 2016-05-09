@@ -10,8 +10,7 @@ import tools.ParseTools;
 public class OnXRandomBot implements Agent{
 
   public static void main(String[] args) {
-    boolean showMinor = (args.length > 0 && ParseTools.parseTruth(args[0]));
-    OnXRandomBot instance = new OnXRandomBot(showMinor);
+    OnXRandomBot instance = new OnXRandomBot(args);
     AgentInterface connection = new SocketAgentInterface(
         instance,
         new OnXStateMaster(),
@@ -19,8 +18,13 @@ public class OnXRandomBot implements Agent{
     connection.run();
   }
 
-  public OnXRandomBot(boolean showMinor){
-    showMinor_ = showMinor;
+  /**
+   * instantiation method
+   * @param args -d for show debug, -dm for show all debug
+   */
+  public OnXRandomBot(String[] args){
+    showMinor_ = (ParseTools.find(args, "-dm") > -1);
+    showDebug_ = showMinor_ || (ParseTools.find(args, "-d") > -1);
   }
 
   @Override
@@ -32,13 +36,17 @@ public class OnXRandomBot implements Agent{
   public Action decide(Action[] actions, State state) {
     OnXState.Grid grid = (OnXState.Grid) state;
     System.out.println(grid.toReadable());
+    // no ai whatsoever, pick at random
     double random = (Math.random() * actions.length);
     return actions[(int) random];
   }
 
   @Override
-  public void updateState(State update) {
+  public void perceiveState(State update) {
+    // game calls update to announce the side you are playing at the start,
+    // announce the winner or show the grid at the end.
     if(update instanceof OnXState.Player){
+      // should only happen once
       OnXState.Player state = (OnXState.Player) update;
       me_ = state.getMe();
     }
@@ -68,7 +76,7 @@ public class OnXRandomBot implements Agent{
 
   @Override
   public void debug(boolean isMajor, Object obj) {
-    if(isMajor || showMinor_) {
+    if(showDebug_ && (isMajor || showMinor_)) {
       String message = "Debug for " + identity() + ": " + obj;
       System.out.println(message);
     }
@@ -80,6 +88,10 @@ public class OnXRandomBot implements Agent{
     System.out.println(message);
   }
 
+  // levels of debug to show;
+  private boolean showDebug_;
   private boolean showMinor_;
+
+  // who I am playing as
   private Token me_;
 }

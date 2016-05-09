@@ -6,7 +6,6 @@ import interfaces.Game;
 import interfaces.GameInterface;
 import interfaces.State;
 
-
 public class ExampleGame implements Game {
 
   // Instantiate class, run class
@@ -63,7 +62,7 @@ public class ExampleGame implements Game {
     debug(true, "Sending initial state.");
     for(int i = 0; i < maxPlayers_; i++){
       State initial = createInitialState(i);
-      interface_.updateState(agentIDs_[i], initial);
+      interface_.sendState(agentIDs_[i], initial);
     }
     debug(true, "Beginning game.");
     boolean gameOver = false;

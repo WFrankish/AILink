@@ -86,7 +86,7 @@ public class SocketGameInterface implements GameInterface {
   }
 
   @Override
-  public void updateState(int agentID, State state) {
+  public void sendState(int agentID, State state) {
     InOut inOut = agents_.get(agentID);
     try {
       // Send an agent a state

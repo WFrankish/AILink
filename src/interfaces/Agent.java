@@ -27,7 +27,7 @@ public interface Agent {
    * turn.
    * @param update a change in the visible state
    */
-  void updateState(State update);
+  void perceiveState(State update);
 
   /**
    * Give the String that identifies your Agent. Mostly for human use, so uniqueness is helpful but not mandatory.

@@ -64,7 +64,7 @@ public class OnXUserControlled implements Agent {
   }
 
   @Override
-  public void updateState(State update) {
+  public void perceiveState(State update) {
     if(update instanceof OnXState.Player){
       OnXState.Player state = (OnXState.Player) update;
       me_ = state.getMe();

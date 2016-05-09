@@ -62,7 +62,7 @@ public class BadEchoBot implements Agent {
   }
 
   @Override
-  public void updateState(State update) {
+  public void perceiveState(State update) {
       System.out.println("Received message: " + update.toReadable());
   }
 

@@ -87,7 +87,7 @@ public class SocketAgentInterface implements AgentInterface {
           // Communication is a state update, so we wil be passed a state.
           State state = stateMaster_.parseString(inOut.readLine());
           agent_.debug(false, "Received State: " + state.toReadable());
-          agent_.updateState(state);
+          agent_.perceiveState(state);
         }
         else if(header.equals("CLOSE")){
           String msg = inOut.readLine();

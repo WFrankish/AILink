@@ -68,7 +68,7 @@ public class Echo implements Game {
         players++;
         debug(true, "Added agent " + agent);
         debug(true, "Now the number of agents is: " + players);
-        interface_.updateState(agentInfo.fst, new EchoState("Welcome!"));
+        interface_.sendState(agentInfo.fst, new EchoState("Welcome!"));
       } else {
         debug(true, "Rejecting agent " + agent);
         interface_.terminateAgent(agentNo, "Rejected.");
@@ -76,7 +76,7 @@ public class Echo implements Game {
     }
     debug(true, "Sending initial state.");
     for(int agentID : agentIDs_){
-      interface_.updateState(agentID, new EchoState("Welcome!"));
+      interface_.sendState(agentID, new EchoState("Welcome!"));
     }
     debug(true, "Beginning game.");
     EchoActionMaster actionMaster = new EchoActionMaster();
