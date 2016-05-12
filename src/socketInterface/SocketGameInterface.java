@@ -64,16 +64,12 @@ public class SocketGameInterface implements GameInterface {
   }
 
   @Override
-  public Action requestAction(int agentID, State state, Action[] actions) {
+  public Action requestAction(int agentID) {
     InOut inOut = agents_.get(agentID);
     try {
       // Send the agent a state and a list of actions
       game_.debug(false, "Requesting action from " + agentID);
       inOut.writeLine("REQUEST");
-      game_.debug(false, "Sending state: " + state.toReadable());
-      inOut.writeLine(state.toString());
-      game_.debug(false, "Sending actions: " + actionMaster_.actionsToReadable(actions));
-      inOut.writeLine(actionMaster_.actionsToString(actions));
       // Get an action back.
       String action = inOut.readLine();
       game_.debug(false, "Received action: " + action);

@@ -9,6 +9,7 @@ import tools.ParseTools;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 public class OnXUserControlled implements Agent {
   public static void main(String[] args) {
@@ -16,8 +17,7 @@ public class OnXUserControlled implements Agent {
     OnXUserControlled instance = new OnXUserControlled(showMinor);
     AgentInterface connection = new SocketAgentInterface(
         instance,
-        new OnXStateMaster(),
-        new OnXActionMaster());
+        new OnXStateMaster());
     connection.run();
   }
 
@@ -31,9 +31,8 @@ public class OnXUserControlled implements Agent {
   }
 
   @Override
-  public Action decide(Action[] actions, State state) {
-    OnXState.Grid grid = (OnXState.Grid) state;
-    System.out.println(grid.toReadable());
+  public Action decide() {
+    OnXAction[] actions = getActions();
     try {
       while(true) {
         System.out.println("Choose a grid-space, available: ");
@@ -70,9 +69,8 @@ public class OnXUserControlled implements Agent {
       me_ = state.getMe();
     }
     else if(update instanceof OnXState.Grid){
-      OnXState.Grid grid = (OnXState.Grid) update;
-      System.out.println("Final result: ");
-      System.out.println(grid.toReadable());
+      grid_ = (OnXState.Grid) update;
+      System.out.println(grid_.toReadable());
     }
     else {
       OnXState.Winner state = (OnXState.Winner) update;
@@ -94,6 +92,11 @@ public class OnXUserControlled implements Agent {
   }
 
   @Override
+  public void message(Object obj) {
+    System.out.println("Message from game: " + obj);
+  }
+
+  @Override
   public void debug(boolean isMajor, Object obj) {
     if(isMajor || showMinor_) {
       String message = "Debug for " + identity() + ": " + obj;
@@ -107,6 +110,19 @@ public class OnXUserControlled implements Agent {
     System.out.println(message);
   }
 
+  private OnXAction[] getActions(){
+    ArrayList<OnXAction> result = new ArrayList<OnXAction>();
+    for(int x = 0; x<3; x++){
+      for(int y = 0; y<3; y++){
+        if(grid_.getTokenAt(x, y)==Token.BLANK){
+          result.add(new OnXAction(x, y));
+        }
+      }
+    }
+    return result.toArray(new OnXAction[1]);
+  }
+
   private boolean showMinor_;
   private Token me_;
+  private OnXState.Grid grid_;
 }

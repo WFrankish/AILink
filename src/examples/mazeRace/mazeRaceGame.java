@@ -71,73 +71,72 @@ public class mazeRaceGame implements Game {
     }
     debug(true, "Beginning game.");
     int winner = -1;
-    while(winner < 0){
-      for(int player = 0; player < noPlayers; player++){
+    while(winner < 0 && noPlayers > 0){
+      for(int player = 0; player < maxPlayers_; player++){
         debug(false, "Seeking actions for player " + player);
-        ArrayList<MovementAction> actions = new ArrayList<MovementAction>();
         Coord loc = maze.playerLoc(player);
         int nDist = 1;
         while(!maze.wallAt(loc.x, loc.y-nDist) && !maze.playerAt(loc.x, loc.y-nDist)){
           nDist++;
         }
         boolean nOp = maze.playerAt(loc.x, loc.y-nDist);
-        if(nDist > 1){
-          actions.add(MovementAction.North);
-        }
         int eDist = 1;
         while(!maze.wallAt(loc.x-eDist, loc.y) && !maze.playerAt(loc.x-eDist, loc.y)){
           eDist++;
         }
         boolean eOp = maze.playerAt(loc.x-eDist, loc.y);
-        if(eDist > 1){
-          actions.add(MovementAction.East);
-        }
         int sDist = 1;
         while(!maze.wallAt(loc.x, loc.y+sDist) && !maze.playerAt(loc.x, loc.y+sDist)){
           sDist++;
         }
         boolean sOp = maze.playerAt(loc.x, loc.y+sDist);
-        if(sDist > 1){
-          actions.add(MovementAction.South);
-        }
         int wDist = 1;
         while(!maze.wallAt(loc.x+wDist, loc.y) && !maze.playerAt(loc.x+wDist, loc.y)){
           wDist++;
         }
         boolean wOp = maze.playerAt(loc.x+wDist, loc.y);
-        if(wDist > 1){
-          actions.add(MovementAction.West);
-        }
-        if(!actions.isEmpty()){
-          debug(true, "Next to move is player " + player);
-          MazeState.Sight state = new MazeState.Sight(nOp, nDist, eOp, eDist, sOp, sDist, wOp, wDist);
-          MovementAction[] actionsA = actions.toArray(new MovementAction[1]);
-          Action result = interface_.requestAction(agentIDs_[player], state, actionsA);
-          Cardinal movement = ((MovementAction) result).getDirection();
-          if(maze.canMove(player, movement)){
-            maze.move(player, movement);
-          }
-          else {
-            maze.killPlayer(player);
-            interface_.terminateAgent(agentIDs_[player], "Illegal Move attempted.");
-          }
+        if(nDist > 1 || eDist > 1 || sDist > 1 || wDist > 1){
           if(maze.hasWon(player)){
+            debug(true, "Someone has won!");
             winner = player;
-            for(int j = 0; j < noPlayers; j++){
-              interface_.sendState(agentIDs_[j], new MazeState.Winner(agentNames_[player]));
-              interface_.terminateAgent(agentIDs_[j], "Game Over.");
+          } else {
+            // This player can move in at least one direction
+            debug(true, "Next to move is player " + player);
+            MazeState.Sight state = new MazeState.Sight(nOp, nDist, eOp, eDist, sOp, sDist, wOp, wDist);
+            interface_.sendState(agentIDs_[player], state);
+            Action result = interface_.requestAction(agentIDs_[player]);
+            if (result == null) {
+              maze.killPlayer(player);
+              noPlayers--;
+              interface_.terminateAgent(agentIDs_[player], "Null move received attempted.");
+            } else {
+              Cardinal movement = ((MovementAction) result).getDirection();
+              if (maze.canMove(player, movement)) {
+                maze.move(player, movement);
+              } else {
+                maze.killPlayer(player);
+                noPlayers--;
+                interface_.terminateAgent(agentIDs_[player], "Illegal Move attempted.");
+              }
             }
           }
         }
       }
     }
-    for(int i = 0; i<noPlayers; i++){
-      interface_.sendState(agentIDs_[i], new MazeState.Winner(agentNames_[winner]));
+    String winnerName;
+    if(winner < 0){
+      winnerName = "no one";
+    } else {
+      winnerName = agentNames_[winner];
+    }
+    for(int i = 0; i<maxPlayers_; i++){
+      interface_.sendState(agentIDs_[i], new MazeState.Winner(winnerName));
+      interface_.terminateAgent(agentIDs_[i], "Game Over.");
     }
   }
 
   private boolean acceptAgent(String agent) {
-    message(agent + "wants to play.");
+    message(agent + " wants to play.");
     while(true){
       message("Enter y to accept, n to reject.");
       try {

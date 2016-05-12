@@ -18,27 +18,24 @@ import java.io.InputStreamReader;
 public class BadEchoBot implements Agent {
 
   /**
-   * Constructor
-   * @param showMinor whether to show minor debug messages
-   */
-  public BadEchoBot(boolean showMinor){
-    showMinor_ = showMinor;
-  }
-
-  /**
    * Runs the BadEchoBot, connecting to the given url at the given port.
    * @param args -t to show all debug messages
    */
   public static void main(String[] args) {
-    boolean showMinor = (args.length > 0 && ParseTools.parseTruth(args[0]));
-    while(true) {
-      BadEchoBot instance = new BadEchoBot(showMinor);
-      AgentInterface connection = new SocketAgentInterface(
-          instance,
-          new Echo.EchoStateMaster(),
-          new Echo.EchoActionMaster());
-      connection.run();
-    }
+    BadEchoBot instance = new BadEchoBot(args);
+    AgentInterface connection = new SocketAgentInterface(
+        instance,
+        new EchoStateMaster());
+    connection.run();
+  }
+
+  /**
+   * Constructor
+   * @param args -d for show debug, -dm for show all debug
+   */
+  public BadEchoBot(String[] args){
+    showMinor_ = (ParseTools.find(args, "-dm") > -1);
+    showDebug_ = showMinor_ || (ParseTools.find(args, "-d") > -1);
   }
 
   @Override
@@ -47,9 +44,7 @@ public class BadEchoBot implements Agent {
   }
 
   @Override
-  public Action decide(Action[] actions, State state) {
-    System.out.println("Previous Messages:");
-    System.out.print(state.toString());
+  public Action decide() {
     StringBuilder message = new StringBuilder();
     try {
       BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
@@ -58,12 +53,15 @@ public class BadEchoBot implements Agent {
     catch(IOException e){
       error(e);
     }
-    return new Echo.EchoAction(message.toString());
+    return new EchoAction(message.toString());
   }
 
   @Override
   public void perceiveState(State update) {
-      System.out.println("Received message: " + update.toReadable());
+    if(update instanceof EchoState.Transcript) {
+      System.out.println("Message log:\n" + update.toReadable());
+    }
+    // else do nothing
   }
 
   @Override
@@ -72,8 +70,13 @@ public class BadEchoBot implements Agent {
   }
 
   @Override
+  public void message(Object obj) {
+    System.out.println("Message from game: " + obj);
+  }
+
+  @Override
   public void debug(boolean isMajor, Object o1) {
-    if(isMajor || showMinor_) {
+    if( showDebug_ && (isMajor || showMinor_)) {
       String message = "Debug for " + identity() + ": " + o1;
       System.out.println(message);
     }
@@ -86,8 +89,9 @@ public class BadEchoBot implements Agent {
   }
 
   /**
-   * Whether to show minor debug messages.
+   * What level of debug message to show.
    */
+  private boolean showDebug_;
   private boolean showMinor_;
 }
 

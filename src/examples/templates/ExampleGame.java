@@ -5,6 +5,7 @@ import interfaces.Action;
 import interfaces.Game;
 import interfaces.GameInterface;
 import interfaces.State;
+import tools.ParseTools;
 
 public class ExampleGame implements Game {
 
@@ -15,7 +16,9 @@ public class ExampleGame implements Game {
 
   // Parse Args, instantiate private variables.
   public ExampleGame(String[] args){
-    // Parse Args
+    showMinor_ = (ParseTools.find(args, "-dm") > -1);
+    showDebug_ = showMinor_ || (ParseTools.find(args, "-d") > -1);
+    // Parse Any Other Args
   }
 
   @Override
@@ -69,9 +72,7 @@ public class ExampleGame implements Game {
     while(!gameOver){
       int player = getNextPlayer();
       debug(true, "Next is player " + player);
-      State state = getCurrentState(player);
-      Action[] actions = getAvailableActions(player);
-      Action chosen = interface_.requestAction(agentIDs_[player], state, actions);
+      Action chosen = interface_.requestAction(agentIDs_[player]);
       if(chosen != null && validAction(player, chosen)){
         progressState(player, chosen);
       }
@@ -79,6 +80,12 @@ public class ExampleGame implements Game {
         debug(true, "Action not valid");
         removePlayer(player);
         interface_.terminateAgent(agentIDs_[player], "Illegal Action.");
+      }
+      for(int i = 0; i < maxPlayers_; i++){
+        if(isAlive(i)){
+          State state = getCurrentState(i);
+          interface_.sendState(agentIDs_[i], state);
+        }
       }
       gameOver = gameEnded();
     }
@@ -92,7 +99,7 @@ public class ExampleGame implements Game {
   }
 
   // decide whether to accept an agent
-  private boolean acceptAgent(String agent){
+  private boolean acceptAgent(String name){
     return false;
   }
 
@@ -124,6 +131,11 @@ public class ExampleGame implements Game {
   // update the internal state based on the last action
   private void progressState(int playerNo, Action action){
 
+  }
+
+  // reports if a player is still alive
+  private boolean isAlive(int playerNo){
+    return false;
   }
 
   // remove a player from the simulation

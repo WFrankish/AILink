@@ -16,7 +16,6 @@ public class MazeStateMaster implements StateMaster {
         return new MazeState.Dimension(x, y);
       }
       case 'S':{
-        System.out.println(input);
         int i = 1;
         boolean opN = input.charAt(i) == 'o';
         String temp = "";

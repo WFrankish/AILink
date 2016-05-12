@@ -12,8 +12,7 @@ public class OnXDynamicBot implements Agent{
     OnXDynamicBot instance = new OnXDynamicBot(showMinor);
     AgentInterface connection = new SocketAgentInterface(
         instance,
-        new OnXStateMaster(),
-        new OnXActionMaster());
+        new OnXStateMaster());
     connection.run();
   }
 
@@ -27,10 +26,8 @@ public class OnXDynamicBot implements Agent{
   }
 
   @Override
-  public Action decide(Action[] actions, State state) {
-    OnXState.Grid grid = (OnXState.Grid) state;
-    System.out.println(grid.toReadable());
-    // print actions nicely
+  public Action decide() {
+    OnXAction[] actions = getActions();
     StringBuilder builder = new StringBuilder();
     int i;
     for( i = 0; i<actions.length-1; i++){
@@ -50,7 +47,7 @@ public class OnXDynamicBot implements Agent{
       boolean done = false;
       for(int x = 0; x < 3 && !done; x++){
         for(int y = 0; y < 3 && !done; y++){
-          if(grid.getTokenAt(x, y).equals(Token.CROSS)){
+          if(grid_.getTokenAt(x, y).equals(Token.CROSS)){
             crossAction = new OnXAction(x, y);
             done = true;
           }
@@ -119,9 +116,8 @@ public class OnXDynamicBot implements Agent{
       }
     }
     else if(update instanceof OnXState.Grid){
-      OnXState.Grid grid = (OnXState.Grid) update;
-      System.out.println("Final result: ");
-      System.out.println(grid.toReadable());
+      grid_ = (OnXState.Grid) update;
+      System.out.println(grid_.toReadable());
     }
     else {
       OnXState.Winner state = (OnXState.Winner) update;
@@ -143,6 +139,11 @@ public class OnXDynamicBot implements Agent{
   }
 
   @Override
+  public void message(Object obj) {
+    System.out.println("Message from game: " + obj);
+  }
+
+  @Override
   public void debug(boolean isMajor, Object obj) {
     if(isMajor || showMinor_) {
       String message = "Debug for " + identity() + ": " + obj;
@@ -156,6 +157,19 @@ public class OnXDynamicBot implements Agent{
     System.out.println(message);
   }
 
+  private OnXAction[] getActions(){
+    ArrayList<OnXAction> result = new ArrayList<OnXAction>();
+    for(int x = 0; x<3; x++){
+      for(int y = 0; y<3; y++){
+        if(grid_.getTokenAt(x, y)==Token.BLANK){
+          result.add(new OnXAction(x, y));
+        }
+      }
+    }
+    return result.toArray(new OnXAction[1]);
+  }
+
+  private OnXState.Grid grid_;
   private Node node_;
   private boolean showMinor_;
   private Token me_;

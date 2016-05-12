@@ -31,7 +31,7 @@ public class Maze {
     // make middle room
     int width = makeOdd(rand_.between(3, 7));
     int height = makeOdd(rand_.between(3, 7));
-    newRoom(dimX/2-width/2, dimY/2-height/2, width, height);
+    newRoom(makeOdd(dimX/2-width/2), makeOdd(dimY/2-height/2), width, height);
     // make four corner rooms
     width = makeOdd(rand_.between(3, 7));
     height = makeOdd(rand_.between(3, 7));
@@ -103,7 +103,7 @@ public class Maze {
   }
 
   public boolean hasWon(int player){
-    return playerLoc(player).equals(new Coord(makeOdd(dim_.x/2), makeOdd(dim_.y/2)));
+    return playerLoc(player).equals(new Coord(dim_.x/2, dim_.y/2));
   }
 
   public boolean canMove(int player, Cardinal direction){

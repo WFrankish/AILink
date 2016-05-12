@@ -18,27 +18,22 @@ import java.io.InputStreamReader;
 public class EchoBot implements Agent {
 
   /**
-   * Constructor
-   * @param showMinor whether to show minor debug messages
-   */
-  public EchoBot(boolean showMinor){
-    showMinor_ = showMinor;
-  }
-
-  /**
    * Runs the EchoBot, connecting to the given url at the given port.
    * @param args -t to show all debug messages
    */
   public static void main(String[] args) {
-    boolean showMinor = (args.length > 0 && ParseTools.parseTruth(args[0]));
-    while(true) {
-      EchoBot instance = new EchoBot(showMinor);
-      AgentInterface connection = new SocketAgentInterface(
-        instance,
-        new Echo.EchoStateMaster(),
-        new Echo.EchoActionMaster());
-      connection.run();
-    }
+    EchoBot instance = new EchoBot(args);
+    AgentInterface connection = new SocketAgentInterface(instance, new EchoStateMaster());
+    connection.run();
+  }
+
+  /**
+   * Constructor
+   * @param args -d for show debug, -dm for show all debug
+   */
+  public EchoBot(String[] args){
+    showMinor_ = (ParseTools.find(args, "-dm") > -1);
+    showDebug_ = showMinor_ || (ParseTools.find(args, "-d") > -1);
   }
 
   @Override
@@ -47,22 +42,15 @@ public class EchoBot implements Agent {
   }
 
   @Override
-  public Action decide(Action[] actions, State state) {
-    System.out.println("Previous Messages:");
-    System.out.print(state.toString());
-    System.out.println("Allowed characters:");
-    for(Action action : actions){
-      System.out.print(action);
-    }
-    System.out.println();
+  public Action decide() {
     StringBuilder message = new StringBuilder();
     try {
       BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
       String temp = stdIn.readLine();
       for(int i = 0; i<temp.length(); i++){
-        String c = temp.substring(i, i+1);
-        for(Action action : actions){
-          if(c.equals(action.toString())){
+        char c = temp.charAt(i);
+        for(char valid : allowed_){
+          if(c == valid){
             message.append(c);
           }
         }
@@ -71,12 +59,17 @@ public class EchoBot implements Agent {
     catch(IOException e){
       error(e);
     }
-    return new Echo.EchoAction(message.toString());
+    return new EchoAction(message.toString());
   }
 
   @Override
   public void perceiveState(State update) {
-    System.out.println("Message Received: " + update.toReadable());
+    if(update instanceof EchoState.Transcript){
+      System.out.println("Message Log:\n" + update.toReadable());
+    }
+    else if(update instanceof EchoState.AllowedChars){
+      allowed_ = ((EchoState.AllowedChars) update).getAllowed();
+    }
   }
 
   @Override
@@ -85,8 +78,13 @@ public class EchoBot implements Agent {
   }
 
   @Override
+  public void message(Object obj) {
+    System.out.println("Message from game: " + obj);
+  }
+
+  @Override
   public void debug(boolean isMajor, Object o1) {
-    if(isMajor || showMinor_) {
+    if(showDebug_ && (isMajor || showMinor_)) {
       String message = "Debug for " + identity() + ": " + o1;
       System.out.println(message);
     }
@@ -99,7 +97,13 @@ public class EchoBot implements Agent {
   }
 
   /**
-   * Whether to show minor debug messages.
+   * What chars the agent may use.
    */
+  private char[] allowed_;
+
+  /**
+   * What levels of debug message to show.
+   */
+  private boolean showDebug_;
   private boolean showMinor_;
 }

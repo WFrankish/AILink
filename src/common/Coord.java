@@ -17,6 +17,26 @@ public class Coord {
     return result;
   }
 
+  public Coord apply(Cardinal dir){
+    switch (dir){
+      case NORTH:{
+        return new Coord(x, y-1);
+      }
+      case EAST:{
+        return new Coord(x-1, y);
+      }
+      case SOUTH:{
+        return new Coord(x, y+1);
+      }
+      case WEST:{
+        return new Coord(x+1, y);
+      }
+      default:{
+        return null;
+      }
+    }
+  }
+
   public int x;
   public int y;
 

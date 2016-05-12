@@ -54,53 +54,44 @@ public class Echo implements Game {
   }
 
   private void run(){
-    int players = 0;
+    int noPlayers = 0;
     boolean[] agentAlive = new boolean[maxPlayers_];
     debug(true, "Seeking " + maxPlayers_ + " players.");
-    while (players < maxPlayers_){
+    while (noPlayers < maxPlayers_){
       Tuple<Integer, String> agentInfo = interface_.findAgent();
       int agentNo = agentInfo.fst;
       String agent = agentInfo.snd;
       if(acceptAgent(agent)){
-        agentIDs_[players] = agentNo;
-        agentNames_[players] = agent;
-        agentAlive[players] = true;
-        players++;
+        agentIDs_[noPlayers] = agentNo;
+        agentNames_[noPlayers] = agent;
+        agentAlive[noPlayers] = true;
+        noPlayers++;
         debug(true, "Added agent " + agent);
-        debug(true, "Now the number of agents is: " + players);
-        interface_.sendState(agentInfo.fst, new EchoState("Welcome!"));
+        debug(true, "Now the number of agents is: " + noPlayers);
       } else {
         debug(true, "Rejecting agent " + agent);
         interface_.terminateAgent(agentNo, "Rejected.");
       }
     }
-    debug(true, "Sending initial state.");
-    for(int agentID : agentIDs_){
-      interface_.sendState(agentID, new EchoState("Welcome!"));
-    }
+    EchoState.Transcript transcript = new EchoState.Transcript("Echo: Welcome!\n");
     debug(true, "Beginning game.");
-    EchoActionMaster actionMaster = new EchoActionMaster();
-    EchoState transcript = new EchoState("");
     int remainingAgents = maxPlayers_;
     while(remainingAgents > 0){
+      char[] allowed = randomCharSet();
       for(int i = 0; i < maxPlayers_; i++){
         if(agentAlive[i]){
           debug(true, "Next is player " + i);
-          Action[] actions = actionMaster.parseActions( randomCharSet() );
+          interface_.sendState(agentIDs_[i], transcript);
+          interface_.sendState(agentIDs_[i], new EchoState.AllowedChars(allowed));
           // We get an action (a message) from the agent
-          Action chosen = interface_.requestAction(agentIDs_[i], transcript, actions);
+          Action chosen = interface_.requestAction(agentIDs_[i]);
           if(chosen != null){
             String message = chosen.toString();
-            String allowedChars = actionMaster.actionsToString(actions);
-            for (int j = 0; j < message.length() && agentAlive[i]; j++) {
-              String c = message.substring(j, j + 1);
-              if (!allowedChars.contains(c)) {
-                System.out.println("Agent "+i+" has tried to perform an illegal action.");
-                interface_.terminateAgent(i, "Invalid Action chosen.");
-                agentAlive[i] = false;
-                remainingAgents--;
-
-              }
+            if(!isValid(allowed, message)) {
+              System.out.println("Agent " + i + " has tried to perform an illegal action.");
+              interface_.terminateAgent(i, "Invalid Action chosen.");
+              agentAlive[i] = false;
+              remainingAgents--;
             }
             if (agentAlive[i]) {
               // If the message is empty, we shut down.
@@ -118,7 +109,7 @@ public class Echo implements Game {
             debug(true, "Received null.");
             agentAlive[i] = false;
             remainingAgents--;
-            interface_.terminateAgent(agentIDs_[players], "Received null action.");
+            interface_.terminateAgent(agentIDs_[i], "Received null action.");
           }
         }
       }
@@ -127,7 +118,7 @@ public class Echo implements Game {
   }
 
   private boolean acceptAgent(String agent){
-    message(agent + "wants to join.");
+    message(agent + " wants to join.");
     while(true){
       message("Enter y to accept, n to reject.");
       try {
@@ -147,7 +138,19 @@ public class Echo implements Game {
     }
   }
 
-  private String randomCharSet(){
+  private boolean isValid(char[] allowed, String message){
+    boolean valid = true;
+    for(int i = 0; i<message.length() && valid; i++){
+      boolean found = false;
+      for(int j = 0; j<allowed.length && !found; j++){
+        found = message.charAt(i) == allowed[j];
+      }
+      valid = found;
+    }
+    return valid;
+  }
+
+  private char[] randomCharSet(){
     String allChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ";
     StringBuilder result = new StringBuilder();
     for(int i = 0; i < allChars.length(); i++){
@@ -155,7 +158,7 @@ public class Echo implements Game {
         result.append(allChars.charAt(i));
       }
     }
-    return result.toString();
+    return result.toString().toCharArray();
   }
 
   private GameInterface interface_;
@@ -164,93 +167,5 @@ public class Echo implements Game {
   private int maxPlayers_;
   private boolean showDebug_;
   private boolean showMinor_;
-
-  public static class EchoActionMaster implements ActionMaster {
-    @Override
-    public Action[] parseActions(String input) {
-      Action[] out = new Action[input.length()];
-      for (int i = 0; i < input.length(); i++) {
-        out[i] = new EchoAction(input.substring(i, i + 1));
-      }
-      return out;
-    }
-
-    @Override
-    public String actionsToString(Action[] actions) {
-      StringBuilder builder = new StringBuilder();
-      for(Action a : actions){
-        builder.append(a.toString());
-      }
-      return builder.toString();
-    }
-
-    @Override
-    public String actionsToReadable(Action[] actions) {
-      StringBuilder builder = new StringBuilder();
-      for(Action a : actions){
-        builder.append(a.toString());
-        builder.append(" ");
-      }
-      return builder.toString();
-    }
-
-    @Override
-    public Action parseAction(String input) {
-      return new EchoAction(input);
-    }
-  }
-
-  /**
-   * An EchoAction is a string.
-   */
-  public static class EchoAction implements Action{
-    public EchoAction(String str){
-      msg_ = str;
-    }
-
-    @Override
-    public String toString() {
-      return msg_;
-    }
-
-    @Override
-    public String toReadable() {
-      return msg_;
-    }
-
-    private String msg_;
-  }
-
-  public static class EchoStateMaster implements StateMaster{
-    @Override
-    public State parseString(String input) {
-      return new EchoState(input);
-    }
-  }
-
-  /**
-   * The EchoState is all previous messages.
-   */
-  public static class EchoState implements State{
-    public EchoState(String str){
-      transcript_ = new StringBuilder(str);
-    }
-
-    public void append(String str){
-      transcript_.append(str);
-    }
-
-    @Override
-    public String toString() {
-      return transcript_.toString();
-    }
-
-    @Override
-    public String toReadable() {
-      return transcript_.toString();
-    }
-
-    private StringBuilder transcript_;
-  }
 
 }

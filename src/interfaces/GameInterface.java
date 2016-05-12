@@ -16,11 +16,9 @@ public interface GameInterface {
   /**
    * request an action from an agent, giving it a state and some actions to choose from
    * @param agentID the agent to request from
-   * @param state the state that the agent can see
-   * @param actions the actions that the agent can choose from
    * @return the action that the agent chose
    */
-  Action requestAction(int agentID, State state, Action[] actions);
+  Action requestAction(int agentID);
 
   /**
    * offer an update in state to an agent

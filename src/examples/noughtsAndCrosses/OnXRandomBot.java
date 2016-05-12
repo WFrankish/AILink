@@ -7,14 +7,15 @@ import interfaces.AgentInterface;
 import interfaces.State;
 import tools.ParseTools;
 
+import java.util.ArrayList;
+
 public class OnXRandomBot implements Agent{
 
   public static void main(String[] args) {
     OnXRandomBot instance = new OnXRandomBot(args);
     AgentInterface connection = new SocketAgentInterface(
         instance,
-        new OnXStateMaster(),
-        new OnXActionMaster());
+        new OnXStateMaster());
     connection.run();
   }
 
@@ -33,9 +34,8 @@ public class OnXRandomBot implements Agent{
   }
 
   @Override
-  public Action decide(Action[] actions, State state) {
-    OnXState.Grid grid = (OnXState.Grid) state;
-    System.out.println(grid.toReadable());
+  public Action decide() {
+    OnXAction[] actions = getActions();
     // no ai whatsoever, pick at random
     double random = (Math.random() * actions.length);
     return actions[(int) random];
@@ -51,9 +51,8 @@ public class OnXRandomBot implements Agent{
       me_ = state.getMe();
     }
     else if(update instanceof OnXState.Grid){
-      OnXState.Grid grid = (OnXState.Grid) update;
-      System.out.println("Final result: ");
-      System.out.println(grid.toReadable());
+      grid_ = (OnXState.Grid) update;
+      System.out.println(grid_.toReadable());
     }
     else {
       OnXState.Winner state = (OnXState.Winner) update;
@@ -75,6 +74,11 @@ public class OnXRandomBot implements Agent{
   }
 
   @Override
+  public void message(Object obj) {
+    System.out.println("Message from game: " + obj);
+  }
+
+  @Override
   public void debug(boolean isMajor, Object obj) {
     if(showDebug_ && (isMajor || showMinor_)) {
       String message = "Debug for " + identity() + ": " + obj;
@@ -88,10 +92,24 @@ public class OnXRandomBot implements Agent{
     System.out.println(message);
   }
 
+  private OnXAction[] getActions(){
+    ArrayList<OnXAction> result = new ArrayList<OnXAction>();
+    for(int x = 0; x<3; x++){
+      for(int y = 0; y<3; y++){
+        if(grid_.getTokenAt(x, y)==Token.BLANK){
+          result.add(new OnXAction(x, y));
+        }
+      }
+    }
+    return result.toArray(new OnXAction[1]);
+  }
+
   // levels of debug to show;
   private boolean showDebug_;
   private boolean showMinor_;
 
   // who I am playing as
   private Token me_;
+
+  private OnXState.Grid grid_;
 }

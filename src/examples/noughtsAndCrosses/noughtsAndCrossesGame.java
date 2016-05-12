@@ -104,7 +104,8 @@ public class noughtsAndCrossesGame implements Game {
       if(crossTurn){
         debug(true, "Cross's turn.");
         crossTurn = false;
-        Action chosenAction = interface_.requestAction(cross_, state_, actions);
+        interface_.sendState(cross_, state_);
+        Action chosenAction = interface_.requestAction(cross_);
         OnXAction placeToken = (OnXAction) chosenAction;
         if(!validAction(placeToken)){
           debug(true, "Cross tried an illegal action.");
@@ -118,7 +119,8 @@ public class noughtsAndCrossesGame implements Game {
       else{
         debug(true, "Nought's turn.");
         crossTurn = true;
-        Action temp = interface_.requestAction(nought_, state_, getActions());
+        interface_.sendState(nought_, state_);
+        Action temp = interface_.requestAction(nought_);
         OnXAction action = (OnXAction) temp;
         if(!validAction(action)){
           debug(true, "Nought tried an illegal action.");

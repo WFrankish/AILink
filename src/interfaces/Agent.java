@@ -14,11 +14,9 @@ public interface Agent {
 
   /**
    * Given the current visible state and available actions, decide on an action to perform.
-   * @param actions available actions
-   * @param state current visible state
    * @return an action from the available actions
    */
-  Action decide(Action[] actions, State state);
+  Action decide();
 
   /**
    * Note a change in the visible state
@@ -35,6 +33,13 @@ public interface Agent {
    * @return your identity as String
    */
   String identity();
+
+  /**
+   * Transmit error messages from the game itself.
+   * Suggestion is to print to console or ignore it.
+   * @param obj information as any Object (therefore it has a toString method)
+   */
+  void message(Object obj);
 
   /**
    * React to debug information from the interface.
