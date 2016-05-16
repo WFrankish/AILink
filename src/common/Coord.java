@@ -17,6 +17,10 @@ public class Coord {
     return result;
   }
 
+  public Coord add(int x2, int y2){
+    return new Coord(x+x2, y+y2);
+  }
+
   public Coord apply(Cardinal dir){
     switch (dir){
       case NORTH:{

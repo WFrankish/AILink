@@ -1,8 +1,10 @@
-package examples.mazeRace;
+package examples.mazeChase;
 
 import common.Cardinal;
 import common.Coord;
 import common.Grid;
+import examples.mazeRace.GridFrame;
+import examples.mazeChase.ChaseState.*;
 import tools.RandomTool;
 
 import java.awt.*;
@@ -13,7 +15,7 @@ public class Maze {
 
   public Maze(int dimX, int dimY, int seed, int noRooms, boolean slowGenerate){
     noPlayers_ = 0;
-    players_ = new Coord[4];
+    players_ = new Coord[3];
     for(int i = 0; i<players_.length; i++){
       players_[i] = new Coord(0, 0);
     }
@@ -21,27 +23,21 @@ public class Maze {
     dim_ = new Coord(makeOdd(dimX), makeOdd(dimY));
     frame_ = new GridFrame(dim_.x, dim_.y, Color.black);
     frame_.makeVisible(slowGenerate);
-    maze_ = new Grid<Boolean>(dim_, true, true);
+    maze_ = new Grid<Thing>(dim_, Thing.WALL, Thing.WALL);
     tempMaze_ = new Grid<Integer>(dim_, 0, 0);
     index_ = 0;
     // make middle room
     int width = makeOdd(rand_.between(3, 7));
     int height = makeOdd(rand_.between(3, 7));
     newRoom(makeOdd(dim_.x/2-width/2), makeOdd(dim_.y/2-height/2), width, height);
-    // make four corner rooms
+    // make two corner rooms
     width = makeOdd(rand_.between(3, 7));
     height = makeOdd(rand_.between(3, 7));
     newRoom(1 ,1, width, height);
     width = makeOdd(rand_.between(3, 7));
     height = makeOdd(rand_.between(3, 7));
-    newRoom(dim_.x-width-1, 1,width, height);
-    width = makeOdd(rand_.between(3, 7));
-    height = makeOdd(rand_.between(3, 7));
-    newRoom(1, dim_.y-height-1, width, height);
-    width = makeOdd(rand_.between(3, 7));
-    height = makeOdd(rand_.between(3, 7));
     newRoom(dim_.x-width-1, dim_.y-height-1, width, height);
-    for(int i = 5; i<noRooms; i++){
+    for(int i = 3; i<noRooms; i++){
       width = makeOdd(rand_.between(3, 7));
       height = makeOdd(rand_.between(3, 7));
       int x = makeOdd(rand_.between(0, dim_.x - width - 1));
@@ -50,14 +46,13 @@ public class Maze {
     }
     for(int i = 1; i< dim_.x; i+=2){
       for(int j = 1; j< dim_.y; j+=2){
-        if(wallAt(i, j)){
+        if(wallAt(i,j)){
           newCorridor(i, j);
         }
       }
     }
     connectUp();
     quashDeadEnds();
-    frame_.setColour(Color.orange, new Coord(dim_.x/2, dim_.y/2));
     frame_.redraw();
   }
 
@@ -71,18 +66,13 @@ public class Maze {
         break;
       }
       case 1:{
-        players_[1] = new Coord(1, dim_.y - 2);
+        players_[1] = new Coord(dim_.x - 2, dim_.y - 2);
         frame_.setColour(colours[1], players_[1]);
         break;
       }
       case 2:{
-        players_[2] = new Coord(dim_.x - 2, 1);
+        players_[2] = new Coord(dim_.x/2, dim_.y/2);
         frame_.setColour(colours[2], players_[2]);
-        break;
-      }
-      case 3:{
-        players_[3] = new Coord(dim_.x - 2, dim_.y - 2);
-        frame_.setColour(colours[3], players_[3]);
         break;
       }
       default:{
@@ -90,16 +80,6 @@ public class Maze {
       }
     }
     noPlayers_++;
-  }
-
-  public void killPlayer(int player){
-    frame_.setColour(Color.white, playerLoc(player));
-    players_[player] = new Coord(0,0);
-    frame_.redraw();
-  }
-
-  public boolean hasWon(int player){
-    return playerLoc(player).equals(new Coord(dim_.x/2, dim_.y/2));
   }
 
   public boolean canMove(int player, Cardinal direction){
@@ -147,7 +127,7 @@ public class Maze {
   }
 
   public boolean wallAt(int x, int y){
-    return maze_.get(x, y);
+    return maze_.get(x, y)==Thing.WALL;
   }
 
   public boolean playerAt(int x, int y){
@@ -158,12 +138,24 @@ public class Maze {
     return result;
   }
 
+  public Grid<ChaseState.Thing> cloneMap(){
+    Grid<ChaseState.Thing> out = new Grid<ChaseState.Thing>(maze_, ChaseState.Thing.WALL);
+    out.set(players_[0], ChaseState.Thing.CHASER1);
+    out.set(players_[1], ChaseState.Thing.CHASER2);
+    out.set(players_[2], ChaseState.Thing.RUNNER);
+    return out;
+  }
+
+  public Thing whatsAt(int x, int y){
+    return maze_.get(x, y);
+  }
+
   public Coord playerLoc(int player){
     return players_[player];
   }
 
   private boolean wallAt2(int x, int y){
-    return !(x < 0 || x >= dim_.x || y < 0 || y >= dim_.y) && maze_.get(x, y);
+    return !(x < 0 || x >= dim_.x || y < 0 || y >= dim_.y) && maze_.get(x, y) == Thing.WALL;
   }
 
   private int makeOdd(int val){
@@ -180,7 +172,7 @@ public class Maze {
     Coord loc = new Coord(x, y);
     Color colour = new RandomTool(index_).color();
     frame_.setColour(colour, loc);
-    maze_.set(loc, false);
+    maze_.set(loc, Thing.NOTHING);
     tempMaze_.set(loc, index_);
     ArrayList<Coord> stack = new ArrayList<Coord>();
     stack.add(loc);
@@ -205,10 +197,10 @@ public class Maze {
         int mx = loc.x + (newLoc.x - loc.x) / 2;
         int my = loc.y + (newLoc.y - loc.y) / 2;
         frame_.setColour(colour, new Coord(mx, my));
-        maze_.set(mx, my, false);
+        maze_.set(mx, my, Thing.NOTHING);
         tempMaze_.set(mx, my, index_);
         frame_.setColour(colour, newLoc);
-        maze_.set(newLoc, false);
+        maze_.set(newLoc, Thing.NOTHING);
         tempMaze_.set(newLoc, index_);
         stack.add(0, newLoc);
         frame_.redraw();
@@ -235,7 +227,7 @@ public class Maze {
       for (int i = x; i < x2; i++) {
         for (int j = y; j < y2; j++) {
           frame_.setColour(colour, new Coord(i, j));
-          maze_.set(i, j, false);
+          maze_.set(i, j, Thing.NOTHING);
           tempMaze_.set(i, j, index_);
         }
       }
@@ -284,12 +276,12 @@ public class Maze {
       if (!options.isEmpty()) {
         int[] ran = options.remove(rand_.between(0, options.size()));
         Coord dimRan = new Coord(ran[0], ran[1]);
-        maze_.set(dimRan, false);
+        maze_.set(dimRan, Thing.NOTHING);
         tempMaze_.set(dimRan, ran[2]);
         for (int[] option : options) {
-          if (rand_.decide(0.05) && option[2] == ran[2]) {
+          if (rand_.decide(0.1) && option[2] == ran[2]) {
             Coord dimOpt = new Coord(option[0], option[1]);
-            maze_.set(dimOpt, false);
+            maze_.set(dimOpt, Thing.NOTHING);
             tempMaze_.set(dimOpt, ran[2]);
           }
         }
@@ -337,24 +329,24 @@ public class Maze {
     }
     while(!deadEnds.isEmpty()){
       ArrayList<Coord> deadend = deadEnds.remove(0);
-      if(rand_.decide(0.99)){
+      if(rand_.decide(0.95)){
         Coord dim1 = deadend.get(0);
         Coord dim2 = deadend.get(1);
-        maze_.set(dim1, true);
+        maze_.set(dim1, Thing.WALL);
         frame_.setColour(Color.black, dim1);
         frame_.redraw();
         ArrayList<Coord> adjacents = new ArrayList<Coord>();
         adjacents.add(dim2);
-        if (!maze_.get(dim2.apply(Cardinal.NORTH))) {
+        if (maze_.get(dim2.apply(Cardinal.NORTH))!=Thing.WALL) {
           adjacents.add(dim2.apply(Cardinal.NORTH));
         }
-        if (!maze_.get(dim2.apply(Cardinal.EAST))) {
+        if (maze_.get(dim2.apply(Cardinal.EAST))!=Thing.WALL) {
           adjacents.add(dim2.apply(Cardinal.EAST));
         }
-        if (!maze_.get(dim2.apply(Cardinal.SOUTH))) {
+        if (maze_.get(dim2.apply(Cardinal.SOUTH))!=Thing.WALL) {
           adjacents.add(dim2.apply(Cardinal.SOUTH));
         }
-        if (!maze_.get(dim2.apply(Cardinal.WEST))) {
+        if (maze_.get(dim2.apply(Cardinal.WEST))!=Thing.WALL) {
           adjacents.add(dim2.apply(Cardinal.WEST));
         }
         if (adjacents.size() == 2) {
@@ -368,9 +360,9 @@ public class Maze {
   private Coord[] players_;
   private GridFrame frame_;
   private Coord dim_;
-  private Grid<Boolean> maze_;
+  private Grid<Thing> maze_;
   private Grid<Integer> tempMaze_;
   private int index_;
   private RandomTool rand_;
-  private Color[] colours = new Color[]{ Color.red, Color.blue, Color.green, Color.magenta};
+  private Color[] colours = new Color[]{ Color.green, Color.blue, Color.red};
 }

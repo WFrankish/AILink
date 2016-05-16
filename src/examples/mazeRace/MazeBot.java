@@ -25,6 +25,7 @@ public class MazeBot implements Agent {
   public MazeBot(String[] args){
     showMinor_ = (ParseTools.find(args, "-dm") > -1);
     showDebug_ = showMinor_ || (ParseTools.find(args, "-d") > -1);
+    showScreen_ = (ParseTools.find(args, "-v") > -1);
     int seed = ParseTools.findVal(args, "-r", 0);
     rand_ = new RandomTool(seed);
     plannedMoves_ = new ArrayList<MovementAction>();
@@ -59,7 +60,7 @@ public class MazeBot implements Agent {
           knownMaze_.set(x, 0, -1);
           knownMaze_.set(x, dim_.y - 1, -1);
         }
-        frame_.makeVisible(true);
+        frame_.makeVisible(showScreen_);
         frame_.redraw();
       }
     }
@@ -185,7 +186,6 @@ public class MazeBot implements Agent {
       debug(false, "Now targeting square "+targetX_+", "+targetY_);
     }
     MovementAction nextMove = plannedMoves_.get(0);
-    System.out.println(allowedMoves_.indexOf(nextMove));
     if(panicDuration_ > 0 || allowedMoves_.indexOf(nextMove) < 0){
       if(panicDuration_ > 0) {
         // we're moving randomly hoping a blocking opponent will move;
@@ -397,6 +397,7 @@ public class MazeBot implements Agent {
   private Grid<Integer> knownMaze_;
   private boolean showMinor_;
   private boolean showDebug_;
+  private boolean showScreen_;
   private ArrayList<MovementAction> allowedMoves_;
   private int panicDuration_;
   private int targetX_;

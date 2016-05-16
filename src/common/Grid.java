@@ -26,6 +26,19 @@ public class Grid<T> {
     }
   }
 
+  public Grid(Grid<T> grid, T outOfBounds){
+    width_ = grid.width();
+    height_ = grid.height();
+    grid_ = (T[][]) new Object[width_][height_];
+    outOfBounds_ = outOfBounds;
+    for(int x = 0; x < width_; x++){
+      for(int y = 0; y < height_; y++){
+        grid_[x][y] = grid.get(x, y);
+      }
+    }
+  }
+
+
   public T get(int x, int y){
     if(x < 0 || x >= width_ || y < 0 || y >= height_){
       return outOfBounds_;
@@ -57,6 +70,18 @@ public class Grid<T> {
 
   public int width(){
     return width_;
+  }
+
+  public String toReadable(){
+    StringBuilder builder = new StringBuilder();
+    for(int y = 0; y < height(); y++){
+      for(int x = 0; x < width(); x++){
+        builder.append(get(x, y));
+        builder.append(' ');
+      }
+      builder.append('\n');
+    }
+    return builder.toString();
   }
 
   private T outOfBounds_;

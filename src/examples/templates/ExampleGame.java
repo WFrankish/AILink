@@ -70,16 +70,16 @@ public class ExampleGame implements Game {
     debug(true, "Beginning game.");
     boolean gameOver = false;
     while(!gameOver){
-      int player = getNextPlayer();
-      debug(true, "Next is player " + player);
-      Action chosen = interface_.requestAction(agentIDs_[player]);
-      if(chosen != null && validAction(player, chosen)){
-        progressState(player, chosen);
+      int p = getNextPlayer();
+      debug(true, "Next is player " + p);
+      Action chosen = interface_.requestAction(agentIDs_[p]);
+      if(chosen != null && validAction(p, chosen)){
+        progressState(p, chosen);
       }
       else{
         debug(true, "Action not valid");
-        removePlayer(player);
-        interface_.terminateAgent(agentIDs_[player], "Illegal Action.");
+        removePlayer(p);
+        interface_.terminateAgent(agentIDs_[p], "Illegal Action.");
       }
       for(int i = 0; i < maxPlayers_; i++){
         if(isAlive(i)){
