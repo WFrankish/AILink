@@ -7,7 +7,7 @@ import interfaces.StateMaster;
 public class ChaseStateMaster implements StateMaster {
 
   @Override
-  public State parseString(String input) {
+  public State decode(String input) {
     if(input.length() == 0){
       return null;
     } else {
@@ -16,7 +16,7 @@ public class ChaseStateMaster implements StateMaster {
       switch (header){
         case 'Y':{
           char c = (content.length() > 0) ? content.charAt(0) : null;
-          return new ChaseState.You(ChaseState.Thing.parse(c));
+          return new ChaseState.You(ChaseState.Thing.decode(c));
         }
         case 'H':{
           return new ChaseState.Hit();
@@ -31,7 +31,7 @@ public class ChaseStateMaster implements StateMaster {
           Grid<ChaseState.Thing> output = new Grid<ChaseState.Thing>(width, height, ChaseState.Thing.UNKNOWN, ChaseState.Thing.WALL);
           for(int y = 0; y<height; y++){
             for(int x = 0; x<width; x++){
-              ChaseState.Thing thing = ChaseState.Thing.parse(groups[y].charAt(x));
+              ChaseState.Thing thing = ChaseState.Thing.decode(groups[y].charAt(x));
               output.set(x, y, thing);
             }
           }

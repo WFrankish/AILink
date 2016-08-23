@@ -9,9 +9,15 @@ import java.net.Socket;
  * in the message. This class should be used at both ends of the communication process.
  */
 public class InOut {
-  public InOut(Socket s) throws IOException {
-    in_ = new BufferedReader(new InputStreamReader(s.getInputStream()));
-    out_ = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
+
+  /**
+   * Constructor method
+   * @param socket
+   * @throws IOException
+   */
+  public InOut(Socket socket) throws IOException {
+    in_ = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+    out_ = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
   }
 
   /**
@@ -28,31 +34,21 @@ public class InOut {
       char ch = (char) r;
       if(ch == '\n'){
         // We've reached the end of a line.
-        if(special){
-          // Add delayed '\\'
-          builder.append('\\');
-        }
         return builder.toString();
       }
       else if(special){
-        // We have a delayed '\\'
+        // We have a delayed '\'
         if(ch == 'n'){
-          // Found a converted newline, change back to a newline but keep going with the message.
+          // Found an escaped newline, change back to a newline but keep going with the message.
           builder.append('\n');
-        }
-        else if(ch == '\\'){
-          // Found a converted \, change back to \
-          builder.append('\\');
-        }
-        else{
-          // Delayed '\\' was not for a newline, add it back on and continue.
-          builder.append('\\');
+        }else{
+          // Found a different escaped character
           builder.append(ch);
         }
         special = false;
       }
       else if(ch == '\\'){
-        // Could mean a converted character is next, so delay adding this character and look ahead.
+        // Could mean an escaped character is next, so delay adding this character and look ahead.
         special = true;
       }
       else{
@@ -75,18 +71,18 @@ public class InOut {
       // Check each character of the message.
       char c = message.charAt(i);
       if(c == '\n'){
-        // Found a newline mid-message, convert it.
+        // Found a newline mid-message, escape it with \.
         out_.write("\\n");
       }
       else if(c == '\\'){
-        // Found a \, convert it
+        // Found a \, escape it with another \.
         out_.write("\\\\");
       }
       else{
         out_.write(c);
       }
     }
-    // Always interfaceFailed message with a newline.
+    // Always end message with an unescaped newline.
     out_.write("\n");
     out_.flush();
   }

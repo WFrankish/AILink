@@ -16,12 +16,12 @@ public class OnXAction implements Action {
     y_ = y;
   }
 
-  public String toString(){
+  public String encode(){
     return "" + x_ + y_;
   }
 
   @Override
-  public String toReadable() {
+  public String toString() {
     return "x: " + x_ + ", y: " + y_;
   }
 

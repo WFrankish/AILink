@@ -170,7 +170,7 @@ public class Maze {
   private void newCorridor(int x, int y){
     index_++;
     Coord loc = new Coord(x, y);
-    Color colour = new RandomTool(index_).color();
+    Color colour = new RandomTool(index_).nextColour();
     frame_.setColour(colour, loc);
     maze_.set(loc, Thing.NOTHING);
     tempMaze_.set(loc, index_);

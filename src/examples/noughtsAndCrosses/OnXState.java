@@ -4,6 +4,9 @@ import interfaces.State;
 
 public class OnXState{
 
+  /**
+   * A 3*3 grid of tokens.
+   */
   public static class Grid implements State{
 
     public Grid(){
@@ -24,47 +27,32 @@ public class OnXState{
     }
 
     @Override
-    public String toString() {
+    public String encode() {
+      // G is the header OnX StateMaster expects for Grid State
       StringBuilder result = new StringBuilder("G");
+      // show each token in each row sequentially
       for(int y = 0; y<3; y++){
         for(int x = 0; x<3; x++){
-          switch (grid_[x][y]){
-            case CROSS:{
-              result.append('X');
-              break;
-            }
-            case NOUGHT:{
-              result.append('O');
-              break;
-            }
-            default:{
-              result.append('?');
-            }
-          }
+          result.append(grid_[x][y].encode());
         }
       }
       return result.toString();
     }
 
+    /**
+     * [ X ? X ]
+     * [ ? O ? ]
+     * [ X ? O ]
+     * @return grid formatted as above;
+     */
     @Override
-    public String toReadable() {
+    public String toString() {
       StringBuilder result = new StringBuilder();
       for(int y = 0; y<3; y++){
         result.append("[ ");
         for(int x = 0; x<3; x++){
-          switch (grid_[x][y]){
-            case CROSS:{
-              result.append("X ");
-              break;
-            }
-            case NOUGHT:{
-              result.append("O ");
-              break;
-            }
-            default:{
-              result.append("? ");
-            }
-          }
+          result.append(grid_[x][y].encode());
+          result.append(' ');
         }
         result.append("]\n");
       }
@@ -86,33 +74,15 @@ public class OnXState{
     }
 
     @Override
-    public String toString() {
-      switch (me_){
-        case NOUGHT:{
-          return "PO";
-        }
-        case CROSS:{
-          return "PX";
-        }
-        default:{
-          return "P?";
-        }
-      }
+    public String encode() {
+      // P is the header OnXStateMaster expects for Player state.
+      // Tokens, in this case only one, are encoded as X, O or ?.
+      return "P"+me_.encode();
     }
 
     @Override
-    public String toReadable() {
-      switch (me_){
-        case NOUGHT:{
-          return "Nought";
-        }
-        case CROSS:{
-          return "Cross";
-        }
-        default:{
-          return "Blank";
-        }
-      }
+    public String toString() {
+      return me_.toString();
     }
 
     private Token me_;
@@ -130,38 +100,19 @@ public class OnXState{
     }
 
     @Override
-    public String toString() {
-      switch (winner_){
-        case NOUGHT:{
-          return "WO";
-        }
-        case CROSS:{
-          return "WX";
-        }
-        default:{
-          return "W?";
-        }
-      }
+    public String encode() {
+      // W is the header OnX State expects for Winner State
+      // Otherwise this encodes identically to Player State
+      return "W"+winner_.encode();
     }
 
     @Override
-    public String toReadable() {
-      switch (winner_){
-        case NOUGHT:{
-          return "Nought";
-        }
-        case CROSS:{
-          return "Cross";
-        }
-        default:{
-          return "Blank";
-        }
-      }
+    public String toString() {
+      return winner_.toString();
     }
 
     private Token winner_;
 
   }
-
 
 }

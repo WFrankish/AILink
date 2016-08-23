@@ -27,6 +27,7 @@ public class BadEchoBot implements Agent {
         instance,
         new EchoStateMaster());
     connection.run();
+    instance.debug(true, "Simulation over.");
   }
 
   /**
@@ -59,7 +60,7 @@ public class BadEchoBot implements Agent {
   @Override
   public void perceiveState(State update) {
     if(update instanceof EchoState.Transcript) {
-      System.out.println("Message log:\n" + update.toReadable());
+      System.out.println("Message log:\n" + update.toString());
     }
     // else do nothing
   }

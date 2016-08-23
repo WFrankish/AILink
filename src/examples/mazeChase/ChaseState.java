@@ -1,6 +1,5 @@
 package examples.mazeChase;
 
-import common.Coord;
 import common.Grid;
 import interfaces.State;
 
@@ -21,13 +20,13 @@ public class ChaseState {
     }
 
     @Override
-    public String toString() {
-      return 'Y'+you.toString();
+    public String encode() {
+      return 'Y'+you.encode();
     }
 
     @Override
-    public String toReadable() {
-      return you.toReadable();
+    public String toString() {
+      return you.toString();
     }
 
     public Thing you;
@@ -41,12 +40,12 @@ public class ChaseState {
     }
 
     @Override
-    public String toString() {
+    public String encode() {
       return "W"+time_;
     }
 
     @Override
-    public String toReadable() {
+    public String toString() {
       return time_ + " turns before runner defeated";
     }
 
@@ -57,12 +56,12 @@ public class ChaseState {
   public static class Hit implements State{
 
     @Override
-    public String toString() {
+    public String encode() {
       return "H";
     }
 
     @Override
-    public String toReadable() {
+    public String toString() {
       return "You've been hit!";
     }
 
@@ -75,12 +74,12 @@ public class ChaseState {
     }
 
     @Override
-    public String toString() {
+    public String encode() {
       StringBuilder result = new StringBuilder();
       result.append('V');
       for(int y = 0; y<state_.height(); y++){
         for(int x = 0; x<state_.width(); x++){
-          result.append(state_.get(x, y).toString());
+          result.append(state_.get(x, y).encode());
         }
         result.append('_');
       }
@@ -88,7 +87,7 @@ public class ChaseState {
     }
 
     @Override
-    public String toReadable() {
+    public String toString() {
       StringBuilder result = new StringBuilder();
       for(int y = 0; y<state_.height(); y++){
         for(int x = 0; x<state_.width(); x++){
@@ -134,8 +133,7 @@ public class ChaseState {
   public enum Thing {
     WALL, NOTHING, CHASER1, CHASER2, RUNNER, UNKNOWN;
 
-    @Override
-    public String toString() {
+    public String encode() {
       switch (this){
         case WALL:{
           return "W";
@@ -158,7 +156,7 @@ public class ChaseState {
       }
     }
 
-    public String toReadable(){
+    public String toString(){
       switch (this) {
         case WALL: {
           return "A Wall";
@@ -181,7 +179,7 @@ public class ChaseState {
       }
     }
 
-    public static Thing parse(char c){
+    public static Thing decode(char c){
       switch (c){
         case 'W':{
           return WALL;

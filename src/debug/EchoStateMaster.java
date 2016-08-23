@@ -8,29 +8,19 @@ import interfaces.StateMaster;
  */
 public class EchoStateMaster implements StateMaster {
   @Override
-  public State parseString(String input) {
+  public State decode(String input) {
     if(input.length() == 0){
       return null;
     } else {
       char header = input.charAt(0);
+      String content = input.length() == 1 ? "" : input.substring(1);
       switch (header){
         case 'A':{
-          char[] allowed;
-          if(input.length() == 1){
-            allowed = new char[0];
-          } else {
-            allowed = input.substring(1).toCharArray();
-          }
+          char[] allowed = content.toCharArray();
           return new EchoState.AllowedChars(allowed);
         }
         case 'T':{
-          String transcript;
-          if(input.length() == 1){
-            transcript = "";
-          } else {
-            transcript = input.substring(1);
-          }
-          return new EchoState.Transcript(transcript);
+          return new EchoState.Transcript(content);
         }
         default:{
           return null;

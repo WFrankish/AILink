@@ -52,11 +52,11 @@ public class OnXRandomBot implements Agent{
     }
     else if(update instanceof OnXState.Grid){
       grid_ = (OnXState.Grid) update;
-      System.out.println(grid_.toReadable());
+      System.out.println(grid_.toString());
     }
     else {
       OnXState.Winner state = (OnXState.Winner) update;
-      System.out.println(state.toReadable());
+      System.out.println(state.toString());
       Token winner = state.getWinner();
       if (winner.equals(me_)) {
         System.out.println("I won!");

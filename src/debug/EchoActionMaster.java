@@ -9,7 +9,7 @@ import interfaces.ActionMaster;
 public class EchoActionMaster implements ActionMaster {
 
   @Override
-  public Action parseAction(String input) {
+  public Action decode(String input) {
     return new EchoAction(input);
   }
 

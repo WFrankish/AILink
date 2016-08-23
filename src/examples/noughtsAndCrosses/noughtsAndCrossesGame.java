@@ -87,7 +87,7 @@ public class noughtsAndCrossesGame implements Game {
         noPlayers++;
         debug(true, "Added agent " + agent);
         debug(false, "Now the number of players is: " + noPlayers);
-        debug(true, "Sending initial state for "+token);
+        debug(false, "Sending initial state for "+token);
         interface_.sendState(agentNo, new OnXState.Player(token));
       } else {
         debug(true, "Rejecting agent " + agent);
@@ -101,34 +101,48 @@ public class noughtsAndCrossesGame implements Game {
     // Find empty squares
     Action[] actions = getActions();
     while(!gameOver && actions.length>0){
+      debug(true, actions.length + " turns remain.");
       if(crossTurn){
         debug(true, "Cross's turn.");
         crossTurn = false;
         interface_.sendState(cross_, state_);
         Action chosenAction = interface_.requestAction(cross_);
-        OnXAction placeToken = (OnXAction) chosenAction;
-        if(!validAction(placeToken)){
-          debug(true, "Cross tried an illegal action.");
+        if(chosenAction instanceof OnXAction) {
+          OnXAction placeToken = (OnXAction) chosenAction;
+          if(validAction(placeToken)){
+            debug(true, "Cross made move " + placeToken);
+            gameOver = doAction(placeToken, Token.CROSS);
+          }
+          else{
+            debug(true, "Cross tried an illegal action.");
+            gameOver = true;
+            setWinner(Token.NOUGHT);
+          }
+        } else {
+          debug(true, "Cross sent a null action.");
           gameOver = true;
           setWinner(Token.NOUGHT);
-        }
-        else{
-          gameOver = doAction(placeToken, Token.CROSS);
         }
       }
       else{
         debug(true, "Nought's turn.");
         crossTurn = true;
         interface_.sendState(nought_, state_);
-        Action temp = interface_.requestAction(nought_);
-        OnXAction action = (OnXAction) temp;
-        if(!validAction(action)){
-          debug(true, "Nought tried an illegal action.");
+        Action chosenAction = interface_.requestAction(nought_);
+        if(chosenAction instanceof OnXAction) {
+          OnXAction placeToken = (OnXAction) chosenAction;
+          if (validAction(placeToken)) {
+            debug(true, "Nought made move " + placeToken);
+            gameOver = doAction(placeToken, Token.NOUGHT);
+          } else {
+            debug(true, "Nought tried an illegal action.");
+            gameOver = true;
+            setWinner(Token.CROSS);
+          }
+        } else {
+          debug(true, "Nought sent a null action.");
           gameOver = true;
-          setWinner(Token.CROSS);
-        }
-        else {
-          gameOver = doAction(action, Token.NOUGHT);
+          setWinner(Token.NOUGHT);
         }
       }
       // update remaining grid squares
@@ -249,7 +263,7 @@ public class noughtsAndCrossesGame implements Game {
    * update the internal state with an action
    * @param action the square to place a token
    * @param token the token to place
-   * @return whether this ends the game
+   * @return whether this wins the game
    */
   private boolean doAction(OnXAction action, Token token){
     int x = action.getX();
@@ -258,7 +272,6 @@ public class noughtsAndCrossesGame implements Game {
     // search for new line of token given
     // try horizontal lines
     boolean line = true;
-    boolean full = false;
     for(int nx = 0; nx < 3 && line; nx++){
       line = (token == state_.getTokenAt(nx, y));
     }
@@ -270,14 +283,14 @@ public class noughtsAndCrossesGame implements Game {
       }
     }
     if(!line && (x == y) ){
-      // try diagonal
+      // try diagonal line
       line = true;
       for(int n = 0; n < 3 && line; n++){
         line = (token == state_.getTokenAt(n, n));
       }
     }
     if(!line && (x == 2-y) ){
-      // try other diagonal
+      // try other diagonal line
       line = true;
       for(int n = 0; n < 3 && line; n++){
         line = (token == state_.getTokenAt(2-n, n));
@@ -286,19 +299,7 @@ public class noughtsAndCrossesGame implements Game {
     if(line){
       setWinner(token);
     }
-    else{
-      // check for empty squares
-      full = true;
-      for(int i = 0; i<2; i++){
-        for(int j = 0; j<2; j++){
-          full &= state_.getTokenAt(i, j) != Token.BLANK;
-        }
-      }
-      if(full){
-        setWinner(Token.BLANK);
-      }
-    }
-    return line || full;
+    return line;
   }
 
   /**

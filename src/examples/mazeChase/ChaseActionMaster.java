@@ -7,7 +7,7 @@ import interfaces.ActionMaster;
 public class ChaseActionMaster implements ActionMaster {
 
   @Override
-  public Action parseAction(String input) {
+  public Action decode(String input) {
     if(input.length() != 2){
       return null;
     } else {
@@ -25,7 +25,7 @@ public class ChaseActionMaster implements ActionMaster {
           return null;
         }
       }
-      Cardinal direction = Cardinal.parse(input.charAt(1));
+      Cardinal direction = Cardinal.decode(input.charAt(1));
       return new ChaseAction(action, direction);
     }
   }

@@ -39,11 +39,11 @@ public class OnXUserControlled implements Agent {
         StringBuilder builder = new StringBuilder();
         int i;
         for( i = 0; i<actions.length-1; i++){
-          builder.append(actions[i].toString());
+          builder.append(actions[i].encode());
           builder.append(", ");
         }
         if(i<actions.length){
-          builder.append(actions[i].toString());
+          builder.append(actions[i].encode());
         }
         System.out.println(builder.toString());
         System.out.println();
@@ -70,11 +70,11 @@ public class OnXUserControlled implements Agent {
     }
     else if(update instanceof OnXState.Grid){
       grid_ = (OnXState.Grid) update;
-      System.out.println(grid_.toReadable());
+      System.out.println(grid_.toString());
     }
     else {
       OnXState.Winner state = (OnXState.Winner) update;
-      System.out.println(state.toReadable());
+      System.out.println(state.toString());
       Token winner = state.getWinner();
       if (winner.equals(me_)) {
         System.out.println("You won!");

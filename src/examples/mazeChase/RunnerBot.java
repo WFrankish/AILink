@@ -8,7 +8,6 @@ import interfaces.AgentInterface;
 import interfaces.State;
 import socketInterface.SocketAgentInterface;
 import tools.ParseTools;
-import tools.RandomTool;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -38,7 +37,7 @@ public class RunnerBot implements Agent {
       assert(((ChaseState.You) update).you == ChaseState.Thing.RUNNER);
     }
     else if(update instanceof ChaseState.TimeLasted){
-      System.out.println(update.toReadable());
+      System.out.println(update.toString());
     }
     else if(update instanceof ChaseState.Visible) {
       maze_ = ((ChaseState.Visible) update).getVisible();
@@ -148,38 +147,36 @@ public class RunnerBot implements Agent {
               noExits_.set(exitIfOnly, 2);
               ones.add(exitIfOnly);
               // mark dead end rooms as such
-              for(Coord coord : forLater){
+              for (Coord coord : forLater) {
                 noExits_.set(coord, 1);
               }
             }
           }
-        }
 
 
-        // fill out deadEnd corridors
-        // if a corridor branches out into two dead end corridors, this will still catch them
-        while(!ones.isEmpty()){
-          Coord cur = ones.pop();
-          split:
-          while (noExits_.get(cur) == 2){
-            // while we're still going along a linear corridor
-            noExits_.set(cur, 1);
-            // look for next point in the corridor;
-            for(Cardinal dir : Cardinal.values()){
-              Coord next = cur.apply(dir);
-              if(noExits_.get(next) == 2){
-                cur = next;
-                break;
-              }
-              else if(noExits_.get(next) == 5){
-                // found a new room, will need to reprocess that room
-                fives.add(next);
-                break split;
-              }
-              else if(noExits_.get(next) > 1){
-                // found a branch, take away one movement option
-                noExits_.set(next, noExits_.get(next)-1);
-                break;
+          // fill out deadEnd corridors
+          // if a corridor branches out into two dead end corridors, this will still catch them
+          while (!ones.isEmpty()) {
+            Coord cur = ones.pop();
+            split:
+            while (noExits_.get(cur) == 2) {
+              // while we're still going along a linear corridor
+              noExits_.set(cur, 1);
+              // look for next point in the corridor;
+              for (Cardinal dir : Cardinal.values()) {
+                Coord next = cur.apply(dir);
+                if (noExits_.get(next) == 2) {
+                  cur = next;
+                  break;
+                } else if (noExits_.get(next) == 5) {
+                  // found a new room, will need to reprocess that room
+                  fives.add(next);
+                  break split;
+                } else if (noExits_.get(next) > 1) {
+                  // found a branch, take away one movement option
+                  noExits_.set(next, noExits_.get(next) - 1);
+                  break;
+                }
               }
             }
           }

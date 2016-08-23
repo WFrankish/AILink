@@ -26,6 +26,11 @@ public class ParseTools {
     return (decider == 'y' || decider == 'Y' || decider == 't' || decider == 'T');
   }
 
+  /**
+   * @param args an array of arguments to search
+   * @param target a string to search for
+   * @return the position of the target string, or -1
+   */
   public static int find(String[] args, String target){
     for(int i = 0; i<args.length; i++){
       if(args[i].equals(target)){
@@ -35,6 +40,12 @@ public class ParseTools {
     return -1;
   }
 
+  /**
+   * @param args an array of arguments to search
+   * @param mark a string that should indicate the next argument is the value
+   * @param defaultVal the default value
+   * @return the int following mark in args, or defaultVal if the value can't be found
+   */
   public static int findVal(String[] args, String mark, int defaultVal){
     try{
       int pos = find(args, mark);
@@ -45,6 +56,12 @@ public class ParseTools {
     }
   }
 
+  /**
+   * @param val the value to clamp
+   * @param min the minimum allowed value
+   * @param max the maximum allowed value
+   * @return min if val < min, max if val > max, val otherwise
+   */
   public static int clamp(int val, int min, int max){
     return Math.min(max, Math.max(min, val));
   }

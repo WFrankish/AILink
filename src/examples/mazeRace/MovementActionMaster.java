@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public class MovementActionMaster implements ActionMaster {
 
   @Override
-  public Action parseAction(String input) {
+  public Action decode(String input) {
     char c = input.charAt(0);
     switch (c){
       case 'N':{

@@ -14,7 +14,7 @@ public class EchoState {
     }
 
     @Override
-    public String toString() {
+    public String encode() {
       StringBuilder result = new StringBuilder();
       for(char c : allowed_){
         result.append(c);
@@ -23,7 +23,7 @@ public class EchoState {
     }
 
     @Override
-    public String toReadable() {
+    public String toString() {
       StringBuilder result = new StringBuilder();
       for(char c : allowed_){
         if(c == ' '){
@@ -58,12 +58,12 @@ public class EchoState {
     }
 
     @Override
-    public String toString() {
-      return 'T' + transcript_.toString();
+    public String encode() {
+      return ('T' + transcript_.toString());
     }
 
     @Override
-    public String toReadable() {
+    public String toString() {
       return transcript_.toString();
     }
 

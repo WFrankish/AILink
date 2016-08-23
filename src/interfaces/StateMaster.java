@@ -9,6 +9,6 @@ public interface StateMaster {
    * @param input interfaces.State information as String
    * @return interfaces.State information as State
    */
-  State parseString(String input);
+  State decode(String input);
 
 }

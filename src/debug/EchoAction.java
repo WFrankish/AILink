@@ -12,12 +12,12 @@ public class EchoAction implements Action {
   }
 
   @Override
-  public String toString() {
+  public String encode() {
     return msg_;
   }
 
   @Override
-  public String toReadable() {
+  public String toString() {
     return msg_;
   }
 

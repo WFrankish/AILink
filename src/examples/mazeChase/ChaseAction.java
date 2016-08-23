@@ -11,26 +11,26 @@ public class ChaseAction implements Action{
   }
 
   @Override
-  public String toString() {
+  public String encode() {
     StringBuilder result = new StringBuilder();
     if(action == ActionType.MOVE){
       result.append('M');
     } else {
       result.append('S');
     }
-    result.append(direction.toString());
+    result.append(direction.encode());
     return result.toString();
   }
 
   @Override
-  public String toReadable() {
+  public String toString() {
     StringBuilder result = new StringBuilder();
     if(action == ActionType.MOVE){
       result.append("Move to the ");
     } else {
       result.append("Shoot to the ");
     }
-    result.append(direction.toReadable());
+    result.append(direction.toString());
     return result.toString();
   }
 

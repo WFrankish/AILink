@@ -18,12 +18,12 @@ public class MovementAction implements Action {
   }
 
   @Override
-  public String toString() {
-    return toReadable().substring(0, 1);
+  public String encode() {
+    return toString().substring(0, 1);
   }
 
   @Override
-  public String toReadable() {
+  public String toString() {
     switch ( direction_){
       case NORTH: {
         return "North";

@@ -10,6 +10,6 @@ public interface ActionMaster {
    * @param input a String representing a single Action
    * @return an Action
    */
-  Action parseAction(String input);
+  Action decode(String input);
 
 }

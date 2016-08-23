@@ -51,7 +51,7 @@ public class MazeState {
     }
 
     @Override
-    public String toString() {
+    public String encode() {
       StringBuilder result = new StringBuilder("S");
       if(opN_){
         result.append("o");
@@ -81,7 +81,7 @@ public class MazeState {
     }
 
     @Override
-    public String toReadable() {
+    public String toString() {
       StringBuilder result = new StringBuilder("There is a");
       if(opN_){
         result.append("n opposing agent ");
@@ -159,12 +159,12 @@ public class MazeState {
     }
 
     @Override
-    public String toString() {
+    public String encode() {
       return "D" + dim_.x + "," + dim_.y;
     }
 
     @Override
-    public String toReadable() {
+    public String toString() {
       return "Maze is " + dim_.x +  " wide and " + dim_.y + " long";
     }
 
@@ -178,12 +178,12 @@ public class MazeState {
     }
 
     @Override
-    public String toString() {
+    public String encode() {
       return "W" + winner_;
     }
 
     @Override
-    public String toReadable() {
+    public String toString() {
       return "The winner is " + winner_;
     }
 

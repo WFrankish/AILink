@@ -20,6 +20,8 @@ public class Maze {
     rand_ = new RandomTool(seed);
     dim_ = new Coord(makeOdd(dimX), makeOdd(dimY));
     frame_ = new GridFrame(dim_.x, dim_.y, Color.black);
+    // if slowGenerate is true, then the frame will be visible during maze generation
+    // this vastly slows the program, but lets you see the maze be generated
     frame_.makeVisible(slowGenerate);
     maze_ = new Grid<Boolean>(dim_, true, true);
     tempMaze_ = new Grid<Integer>(dim_, 0, 0);
@@ -178,7 +180,7 @@ public class Maze {
   private void newCorridor(int x, int y){
     index_++;
     Coord loc = new Coord(x, y);
-    Color colour = new RandomTool(index_).color();
+    Color colour = new RandomTool(index_).nextColour();
     frame_.setColour(colour, loc);
     maze_.set(loc, false);
     tempMaze_.set(loc, index_);

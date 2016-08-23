@@ -6,7 +6,7 @@ import interfaces.StateMaster;
 public class MazeStateMaster implements StateMaster {
 
   @Override
-  public State parseString(String input) {
+  public State decode(String input) {
     char indicator = input.charAt(0);
     switch(indicator){
       case 'D':{

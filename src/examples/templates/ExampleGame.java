@@ -63,9 +63,9 @@ public class ExampleGame implements Game {
       }
     }
     debug(true, "Sending initial state.");
-    for(int i = 0; i < maxPlayers_; i++){
-      State initial = createInitialState(i);
-      interface_.sendState(agentIDs_[i], initial);
+    for(int p = 0; p < maxPlayers_; p++){
+      State initial = createInitialState(p);
+      interface_.sendState(agentIDs_[p], initial);
     }
     debug(true, "Beginning game.");
     boolean gameOver = false;

@@ -9,7 +9,6 @@ import interfaces.State;
 import socketInterface.SocketAgentInterface;
 import tools.ParseTools;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Stack;
 
@@ -38,7 +37,7 @@ public class ChaserBot implements Agent {
       }
     }
     else if(update instanceof ChaseState.TimeLasted){
-      System.out.println(update.toReadable());
+      System.out.println(update.toString());
     }
     else if(update instanceof ChaseState.Visible){
       Grid<ChaseState.Thing> visible =((ChaseState.Visible) update).getVisible();
@@ -220,11 +219,20 @@ public class ChaserBot implements Agent {
     targets_.remove(best);
 
     if(plannedMoves_.size() == 0){
-      return new ChaseAction(ChaseAction.ActionType.MOVE, Cardinal.NORTH);
+      ArrayList<Cardinal> allowed = new ArrayList<Cardinal>();
+      for(Cardinal dir : Cardinal.values()){
+        if(maze_.get(myLoc_.apply(dir)) == ChaseState.Thing.NOTHING){
+          allowed.add(dir);
+        }
+      }
+      int rand = (int) (Math.random() * allowed.size()-1);
+      Cardinal dir = allowed.get(rand);
+      return  new ChaseAction(ChaseAction.ActionType.MOVE, dir);
+    } else {
+      return new ChaseAction(ChaseAction.ActionType.MOVE, plannedMoves_.remove(0));
     }
-
-    return new ChaseAction(ChaseAction.ActionType.MOVE, plannedMoves_.remove(0));
   }
+
 
   @Override
   public String identity() {

@@ -25,6 +25,7 @@ public class EchoBot implements Agent {
     EchoBot instance = new EchoBot(args);
     AgentInterface connection = new SocketAgentInterface(instance, new EchoStateMaster());
     connection.run();
+    instance.debug(true, "Simulation over.");
   }
 
   /**
@@ -65,7 +66,7 @@ public class EchoBot implements Agent {
   @Override
   public void perceiveState(State update) {
     if(update instanceof EchoState.Transcript){
-      System.out.println("Message Log:\n" + update.toReadable());
+      System.out.println("Message Log:\n" + update.toString());
     }
     else if(update instanceof EchoState.AllowedChars){
       allowed_ = ((EchoState.AllowedChars) update).getAllowed();

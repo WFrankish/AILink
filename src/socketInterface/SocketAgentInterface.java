@@ -33,7 +33,6 @@ public class SocketAgentInterface implements AgentInterface {
 
   @Override
   public void run(){
-    String stateStr = "";
     try{
       // Create local socket to communicate actions.
       ServerSocket serverSocket = new ServerSocket(0, 0, InetAddress.getByName("localhost"));
@@ -43,6 +42,7 @@ public class SocketAgentInterface implements AgentInterface {
       Socket registrationSocket = new Socket(url_, signUpPort_);
       InOut inOut = new InOut(registrationSocket);
       agent_.debug(true, "Signing up for game.");
+      inOut.writeLine("SIGNUP");
       inOut.writeLine(agent_.identity());
       inOut.writeLine(address);
       inOut.writeLine(port + "");
@@ -75,15 +75,25 @@ public class SocketAgentInterface implements AgentInterface {
         if(header.equals("REQUEST")) {
           // Communication is a request for an action
           Action action = agent_.decide();
-          agent_.debug(false, "Writing action: " + action.toReadable());
-          inOut.writeLine(action.toString());
+          if(action == null) {
+            agent_.error("Attempted to perform null action.");
+            end();
+          } else {
+            agent_.debug(false, "Writing action: " + action.toString());
+            inOut.writeLine(action.encode());
+          }
         }
         else if(header.equals("UPDATE")){
           // Communication is a state update, so we wil be passed a state.
-          stateStr = inOut.readLine();
-          State state = stateMaster_.parseString(stateStr);
-          agent_.debug(false, "Received State: " + state.toReadable());
-          agent_.perceiveState(state);
+          String encoding = inOut.readLine();
+          State state = stateMaster_.decode(encoding);
+          if(state == null){
+            agent_.error("Received invalid state with encoding: " + encoding);
+            end();
+          } else {
+            agent_.debug(false, "Received State: " + state.toString());
+            agent_.perceiveState(state);
+          }
         }
         else if(header.equals("CLOSE")){
           String msg = inOut.readLine();
@@ -104,11 +114,6 @@ public class SocketAgentInterface implements AgentInterface {
       agent_.error(e);
       agent_.error("Failed to communicate");
       end();
-    }
-    catch (NullPointerException e){
-      agent_.error(e);
-      agent_.error("Received Null State");
-      agent_.error("String was " + stateStr);
     }
   }
 

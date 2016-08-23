@@ -86,7 +86,7 @@ public class Echo implements Game {
           // We get an action (a message) from the agent
           Action chosen = interface_.requestAction(agentIDs_[i]);
           if(chosen != null){
-            String message = chosen.toString();
+            String message = chosen.encode();
             if(!isValid(allowed, message)) {
               System.out.println("Agent " + i + " has tried to perform an illegal action.");
               interface_.terminateAgent(i, "Invalid Action chosen.");
@@ -117,8 +117,14 @@ public class Echo implements Game {
     interface_.end();
   }
 
+  /**
+   * Asks at terminal whether to accept an agent.
+   * @param agent name of the agent
+   * @return whether agent was accepted
+   */
   private boolean acceptAgent(String agent){
     message(agent + " wants to join.");
+    // try until a valid answer is received
     while(true){
       message("Enter y to accept, n to reject.");
       try {
@@ -138,6 +144,11 @@ public class Echo implements Game {
     }
   }
 
+  /**
+   * @param allowed characters that are allowed
+   * @param message string to check
+   * @return message contains only characters that are allowed
+   */
   private boolean isValid(char[] allowed, String message){
     boolean valid = true;
     for(int i = 0; i<message.length() && valid; i++){
@@ -150,8 +161,11 @@ public class Echo implements Game {
     return valid;
   }
 
+  /**
+   * @return a selection of roughly 9/10 of all alphabetical characters plus space
+   */
   private char[] randomCharSet(){
-    String allChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ";
+    String allChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\\ ";
     StringBuilder result = new StringBuilder();
     for(int i = 0; i < allChars.length(); i++){
       if(Math.random() > 0.1){

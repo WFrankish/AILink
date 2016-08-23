@@ -21,7 +21,7 @@ public enum Cardinal {
     }
   }
 
-  public String toReadable() {
+  public String toString() {
     switch (this) {
       case NORTH: {
         return "North";
@@ -38,7 +38,7 @@ public enum Cardinal {
     }
   }
 
-  public String toString() {
+  public String encode() {
     switch (this) {
       case NORTH: {
         return "N";
@@ -55,7 +55,7 @@ public enum Cardinal {
     }
   }
 
-  public static Cardinal parse(char input){
+  public static Cardinal decode(char input){
     switch (input){
       case 'N':{
         return NORTH;

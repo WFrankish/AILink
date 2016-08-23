@@ -150,7 +150,7 @@ public class MazeBot implements Agent {
     else{
       // we've been told who the winner is
       MazeState.Winner winner = (MazeState.Winner) update;
-      System.out.println(winner.toReadable() + "!");
+      System.out.println(winner.toString() + "!");
     }
   }
 
